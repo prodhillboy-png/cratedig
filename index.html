@@ -510,7 +510,7 @@
         <option value="dreamy ethereal">Dreamy</option>
       </select>
     </div>
-    <button class="dig-btn" id="digBtn" onclick="digNewSample()">DIG CRATE</button>
+    <<button class="dig-btn" id="digBtn">DIG CRATE</button>
   </div>
 
   <div class="player-card">
@@ -904,7 +904,9 @@
     }
     return { note, mode: ms > ns ? 'Major' : 'Minor' };
   }
-</script>
+<document.getElementById('digBtn').addEventListener('click', digNewSample);
+document.getElementById('copyBtn').addEventListener('click', copyLink);
+/script>
 
 </body>
 </html>
