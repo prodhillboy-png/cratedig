@@ -179,219 +179,216 @@
 var YT_API_KEY = 'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0';
 
 // ─────────────────────────────────────────────────────────────
-// SEARCH STRATEGY
-// Goal: pull strictly music — vinyl rips, rare grooves, full tracks
-// uploaded by record collectors, labels, and music archivists.
-// Queries use producer language + obscurity signals.
-// API enforces: music category only, any duration (shorts blocked by title filter),
-// no shorts, no playlists, single videos only.
-// Client filter rejects anything with non-music keywords.
+// SEARCH STRATEGY v2.5
+// Two-pass system: YouTube API (music category + type=video)
+// then second API call for real ISO 8601 duration filtering.
+// Only keeps videos between 60s and 300s. No exceptions.
 // ─────────────────────────────────────────────────────────────
 
 var SEARCH_TERMS = {
   soul_jazz: [
-    'rare soul 45 rpm full song',
-    'obscure soul singer full track vinyl',
-    'deep soul groove rare record',
-    'northern soul 45 full song',
-    'southern soul deep cut full track',
-    'soul jazz rare groove full song',
-    'vintage soul ballad full track',
-    'rare soul funk 45 rpm',
-    'deep soul underground full song',
-    'soul jazz funk rare full track',
-    'obscure soul record full song',
-    'rare soul gem full track vinyl',
-    'soul groove hidden gem full song',
-    'classic soul rare pressing full track',
-    'soul jazz obscure full song vinyl'
+    'rare northern soul 45 rpm deep cut full song',
+    'obscure soul jazz organ trio vinyl rip full track',
+    'rare 70s soul ballad hidden gem 45 pressing full song',
+    'deep soul groove rare record lp full track',
+    'obscure soul singer vinyl rip 45 rpm full song',
+    'rare soul jazz funk groove deep cut full track',
+    'vintage soul rare pressing hidden gem full song',
+    'rare southern soul 45 deep groove full track',
+    'obscure jazz funk rare groove vinyl full song',
+    'rare soul gem 45 rpm deep cut full track',
+    'hidden gem soul jazz vinyl rip groove full song',
+    'rare 60s soul deep cut obscure pressing full track',
+    'obscure soul groove rare vinyl single full song',
+    'deep soul funk rare record hidden gem full track',
+    'rare soul jazz obscure vinyl rip groove full song'
   ],
   boom_bap: [
-    'underground hip hop instrumental full track',
-    'rare boom bap groove full song',
-    'east coast hip hop rare full track',
-    'obscure rap instrumental full song',
-    'dusty boom bap loop full track',
-    'grimy hip hop rare full song',
-    'raw rap groove underground full track',
-    'hard hitting hip hop rare full song',
-    'vintage rap instrumental full track',
-    'underground rap rare gem full song',
-    'boom bap groove obscure full track',
-    'rare hip hop beat full song',
-    'dirty boom bap underground full track',
-    'classic rap instrumental rare full song',
-    'crate dig hip hop full track'
+    'rare boom bap soul sample vinyl rip full song',
+    'obscure 90s rap instrumental underground groove full track',
+    'dusty crate dig hip hop rare soul chop full song',
+    'underground boom bap rare groove vinyl full track',
+    'rare east coast hip hop instrumental deep cut full song',
+    'obscure rap beat rare soul sample groove full track',
+    'grimy boom bap underground rare vinyl full song',
+    'rare hip hop instrumental soul groove deep cut full track',
+    'dusty boom bap rare record vinyl rip full song',
+    'underground rap instrumental hidden gem groove full track',
+    'rare 90s boom bap groove obscure vinyl full song',
+    'crate dig hip hop rare soul funk sample full track',
+    'obscure boom bap instrumental rare pressing full song',
+    'rare underground hip hop groove deep cut full track',
+    'dusty vinyl boom bap rare soul chop full song'
   ],
   funk_break: [
-    'rare funk 45 rpm full song',
-    'deep funk groove full track vinyl',
-    'funky break rare full song',
-    'obscure funk band full track',
-    'heavy funk rare 45 full song',
-    'funky soul groove full track rare',
-    'rare funk gem full song vinyl',
-    'deep funk underground full track',
-    'funky drummer break full song rare',
-    'obscure soul funk full track',
-    'rare funk record full song',
-    'deep groove funk full track vinyl',
-    'funky rare pressing full song',
-    'soul funk hidden gem full track',
-    'classic funk rare full song vinyl'
+    'rare funk 45 rpm break groove deep cut full song',
+    'obscure funk band rare vinyl rip groove full track',
+    'deep funk rare 45 pressing hidden gem full song',
+    'rare funk break soul groove vinyl rip full track',
+    'obscure heavy funk rare 45 deep cut full song',
+    'rare funky drummer break groove vinyl full track',
+    'deep funk groove rare record pressing full song',
+    'obscure soul funk rare break 45 rpm full track',
+    'rare funk gem hidden groove vinyl rip full song',
+    'deep funk underground rare pressing groove full track',
+    'rare 70s funk break 45 rpm deep cut full song',
+    'obscure funk soul rare groove vinyl full track',
+    'rare funky break hidden gem 45 pressing full song',
+    'deep funk rare record groove vinyl rip full track',
+    'obscure rare funk 45 break deep groove full song'
   ],
   lofi: [
-    'rare jazz vinyl full song',
-    'vintage jazz piano full track',
-    'obscure jazz trio full song',
-    'dusty jazz loop full track rare',
-    'late night jazz rare full song',
-    'mellow jazz groove full track vinyl',
-    'cool jazz obscure full song',
-    'soft jazz rare full track',
-    'vintage piano jazz full song rare',
-    'jazz soul groove full track obscure',
-    'rare jazz record full song vinyl',
-    'chill jazz hidden gem full track',
-    'lofi jazz rare pressing full song',
-    'dusty vinyl jazz full track',
-    'smooth jazz rare groove full song'
+    'rare jazz trio vinyl rip obscure groove full song',
+    'vintage jazz piano rare record deep cut full track',
+    'obscure cool jazz rare vinyl hidden gem full song',
+    'dusty jazz vinyl rip rare groove full track',
+    'rare late night jazz obscure record full song',
+    'mellow jazz groove rare vinyl pressing full track',
+    'obscure jazz quartet rare deep cut full song',
+    'rare soft jazz vinyl rip groove full track',
+    'vintage piano jazz rare record hidden gem full song',
+    'obscure jazz soul groove rare vinyl full track',
+    'rare jazz record deep cut vinyl rip full song',
+    'dusty vinyl jazz rare groove hidden gem full track',
+    'rare jazz pressing obscure deep cut full song',
+    'vintage jazz groove rare vinyl rip full track',
+    'obscure rare jazz record groove deep cut full song'
   ],
   afrobeat: [
-    'afrobeat rare full song vinyl',
-    'afro funk groove full track rare',
-    'highlife rare full song',
-    'west african funk full track obscure',
-    'afrobeat underground full song rare',
-    'nigerian funk rare full track',
-    'afro soul groove full song vinyl',
-    'afrobeat hidden gem full track',
-    'lagos funk rare full song',
-    'afro rhythm groove full track rare',
-    'afrobeat obscure full song vinyl',
-    'afro jazz rare full track',
-    'west african groove full song rare',
-    'afrobeat deep cut full track',
-    'rare afro funk full song vinyl'
+    'rare afrobeat vinyl rip groove deep cut full song',
+    'obscure afro funk rare 45 pressing full track',
+    'rare highlife groove vinyl hidden gem full song',
+    'west african funk rare record deep cut full track',
+    'obscure nigerian funk rare groove vinyl rip full song',
+    'rare afrobeat underground groove pressing full track',
+    'afro soul rare vinyl rip hidden gem full song',
+    'rare lagos funk groove deep cut 45 rpm full track',
+    'obscure afro jazz rare groove vinyl full song',
+    'rare west african groove hidden gem vinyl rip full track',
+    'obscure afrobeat deep cut rare pressing full song',
+    'rare afro funk groove vinyl rip 45 rpm full track',
+    'obscure highlife rare record groove full song',
+    'rare afrobeat vinyl hidden gem deep groove full track',
+    'obscure afro funk rare deep cut groove full song'
   ],
   latin: [
-    'bossa nova rare full song vinyl',
-    'latin jazz groove full track rare',
-    'afro cuban rare full song',
-    'latin soul full track obscure',
-    'samba jazz rare full song vinyl',
-    'latin funk groove full track rare',
-    'bossa nova obscure full song',
-    'cuban jazz rare full track vinyl',
-    'latin groove hidden gem full song',
-    'mambo rare full track vinyl',
-    'latin soul rare pressing full song',
-    'afro latin groove full track rare',
-    'bossa nova deep cut full song',
-    'latin jazz hidden gem full track',
-    'rare latin groove full song vinyl'
+    'rare bossa nova vinyl rip groove deep cut full song',
+    'obscure latin jazz rare pressing hidden gem full track',
+    'rare afro cuban groove vinyl rip full song',
+    'obscure latin soul rare record deep cut full track',
+    'rare samba jazz groove vinyl pressing full song',
+    'obscure latin funk rare groove hidden gem full track',
+    'rare bossa nova deep cut vinyl rip full song',
+    'obscure cuban jazz rare groove pressing full track',
+    'rare latin groove hidden gem vinyl rip full song',
+    'obscure mambo rare vinyl deep cut groove full track',
+    'rare latin soul pressing groove vinyl rip full song',
+    'obscure afro latin rare groove deep cut full track',
+    'rare bossa nova hidden gem vinyl pressing full song',
+    'obscure latin jazz rare vinyl rip groove full track',
+    'rare latin groove deep cut obscure vinyl full song'
   ],
   electronic: [
-    'vintage synthesizer groove full song',
-    'analog synth rare full track',
-    'italo disco rare full song vinyl',
-    'electronic soul groove full track rare',
-    'synth funk obscure full song',
-    'vintage drum machine groove full track',
-    'space disco rare full song vinyl',
-    'electronic funk obscure full track',
-    'retro synth groove full song rare',
-    'kosmische rare full track vinyl',
-    'vintage electronic groove full song',
-    'analog synth rare pressing full track',
-    'electronic soul hidden gem full song',
-    'synth groove obscure full track rare',
-    'rare electronic full song vinyl'
+    'rare vintage synthesizer groove vinyl rip full song',
+    'obscure analog synth rare pressing deep cut full track',
+    'rare italo disco vinyl rip groove hidden gem full song',
+    'obscure electronic soul rare groove vinyl full track',
+    'rare synth funk deep cut vinyl rip groove full song',
+    'vintage drum machine rare groove pressing full track',
+    'rare space disco vinyl rip hidden gem full song',
+    'obscure electronic funk rare groove deep cut full track',
+    'rare retro synth groove vinyl pressing full song',
+    'obscure kosmische rare vinyl rip groove full track',
+    'rare vintage electronic groove deep cut full song',
+    'obscure analog synth rare pressing groove full track',
+    'rare electronic soul hidden gem vinyl rip full song',
+    'obscure synth groove rare deep cut vinyl full track',
+    'rare electronic vinyl rip groove hidden gem full song'
   ],
   gospel: [
-    'vintage gospel full song rare vinyl',
-    'gospel soul groove full track obscure',
-    'black gospel rare full song',
-    'gospel choir groove full track rare',
-    'southern gospel rare full song vinyl',
-    'gospel organ groove full track',
-    'deep gospel soul rare full song',
-    'gospel funk rare full track vinyl',
-    'vintage black gospel obscure full song',
-    'gospel soul hidden gem full track',
-    'rare gospel pressing full song',
-    'gospel groove deep cut full track',
-    'classic gospel rare full song vinyl',
-    'gospel soul underground full track',
-    'rare gospel choir full song vinyl'
+    'rare vintage gospel vinyl rip groove full song',
+    'obscure gospel soul rare pressing deep cut full track',
+    'rare black gospel vinyl groove hidden gem full song',
+    'obscure gospel choir rare record groove full track',
+    'rare southern gospel vinyl rip deep cut full song',
+    'obscure gospel organ groove rare pressing full track',
+    'rare deep gospel soul vinyl rip groove full song',
+    'obscure gospel funk rare hidden gem full track',
+    'rare vintage black gospel vinyl groove full song',
+    'obscure gospel soul rare pressing deep cut full track',
+    'rare gospel pressing vinyl rip hidden gem full song',
+    'obscure gospel groove deep cut rare record full track',
+    'rare classic gospel vinyl rip groove full song',
+    'obscure gospel soul underground rare pressing full track',
+    'rare gospel choir vinyl groove hidden gem full song'
   ],
   psych: [
-    'psychedelic rock rare full song vinyl',
-    'garage psych obscure full track',
-    'fuzz guitar rare full song',
-    'psych rock underground full track rare',
-    'vintage psychedelic full song obscure',
-    'garage rock rare 45 full song',
-    'psychedelic soul groove full track rare',
-    'acid rock obscure full song vinyl',
-    'psych pop rare full track',
-    'vintage garage psych full song rare',
-    'psychedelic funk rare full track vinyl',
-    'obscure psych rock full song',
-    'rare psychedelic gem full track',
-    'garage psych hidden gem full song',
-    'psychedelic groove rare full track vinyl'
+    'rare psychedelic rock vinyl rip groove full song',
+    'obscure garage psych rare 45 pressing full track',
+    'rare fuzz guitar vinyl rip deep cut full song',
+    'obscure psych rock rare groove hidden gem full track',
+    'rare vintage psychedelic vinyl pressing groove full song',
+    'obscure garage rock rare 45 rpm deep cut full track',
+    'rare psychedelic soul groove vinyl rip full song',
+    'obscure acid rock rare vinyl pressing groove full track',
+    'rare psych pop deep cut vinyl rip full song',
+    'obscure vintage garage psych rare groove full track',
+    'rare psychedelic funk vinyl rip hidden gem full song',
+    'obscure psych rock rare pressing deep cut full track',
+    'rare psychedelic gem vinyl groove full song',
+    'obscure garage psych hidden gem rare pressing full track',
+    'rare psychedelic groove vinyl rip deep cut full song'
   ],
   reggae: [
-    'roots reggae rare full song vinyl',
-    'dub music obscure full track',
-    'rocksteady rare full song vinyl',
-    'reggae groove rare full track',
-    'jamaican rare 45 full song',
-    'lovers rock rare full track vinyl',
-    'dub plate groove full song rare',
-    'vintage reggae obscure full track',
-    'roots dub rare full song vinyl',
-    'reggae soul groove full track rare',
-    'ska rare full song vinyl',
-    'vintage dub groove full track',
-    'reggae hidden gem full song rare',
-    'roots reggae deep cut full track',
-    'rare jamaican groove full song vinyl'
+    'rare roots reggae vinyl rip groove deep cut full song',
+    'obscure dub music rare pressing groove full track',
+    'rare rocksteady vinyl rip hidden gem full song',
+    'obscure reggae groove rare record deep cut full track',
+    'rare jamaican 45 rpm vinyl rip groove full song',
+    'obscure lovers rock rare pressing hidden gem full track',
+    'rare dub plate groove vinyl rip full song',
+    'obscure vintage reggae rare deep cut groove full track',
+    'rare roots dub vinyl rip pressing groove full song',
+    'obscure reggae soul rare groove hidden gem full track',
+    'rare ska vinyl rip 45 rpm deep cut full song',
+    'obscure vintage dub groove rare pressing full track',
+    'rare reggae hidden gem vinyl rip groove full song',
+    'obscure roots reggae deep cut rare pressing full track',
+    'rare jamaican groove vinyl rip hidden gem full song'
   ],
   blues: [
-    'chicago blues rare full song vinyl',
-    'electric blues obscure full track',
-    'delta blues rare full song',
-    'blues groove obscure full track vinyl',
-    'vintage blues rare full song',
-    'slow blues groove full track rare',
-    'blues soul rare full song vinyl',
-    'dirty blues obscure full track',
-    'blues rock rare groove full song',
-    'vintage electric blues full track rare',
-    'blues guitarist rare full song vinyl',
-    'deep blues groove full track obscure',
-    'classic blues rare pressing full song',
-    'blues soul hidden gem full track',
-    'rare blues record full song vinyl'
+    'rare chicago blues vinyl rip groove deep cut full song',
+    'obscure electric blues rare pressing hidden gem full track',
+    'rare delta blues vinyl rip groove full song',
+    'obscure blues groove rare record deep cut full track',
+    'rare vintage blues vinyl rip pressing full song',
+    'obscure slow blues groove rare hidden gem full track',
+    'rare blues soul vinyl rip deep cut full song',
+    'obscure dirty blues rare groove pressing full track',
+    'rare blues rock vinyl rip groove hidden gem full song',
+    'obscure vintage electric blues rare deep cut full track',
+    'rare blues guitarist vinyl rip groove full song',
+    'obscure deep blues groove rare pressing full track',
+    'rare classic blues vinyl rip hidden gem full song',
+    'obscure blues soul groove rare deep cut full track',
+    'rare blues record vinyl rip groove full song'
   ],
   classical: [
-    'rare classical vinyl full track',
-    'string quartet obscure full song',
-    'classical piano rare full track vinyl',
-    'chamber music obscure full song',
-    'baroque rare full track vinyl',
-    'piano sonata obscure full song',
-    'orchestral rare full track vinyl',
-    'classical guitar obscure full song',
-    'romantic era piano rare full track',
-    'rare classical recording full song',
-    'vintage classical obscure full track',
-    'classical ensemble rare full song vinyl',
-    'chamber music hidden gem full track',
-    'rare piano recording full song',
-    'classical groove obscure full track vinyl'
+    'rare classical vinyl rip groove deep cut full track',
+    'obscure string quartet rare pressing full song',
+    'rare classical piano vinyl rip hidden gem full track',
+    'obscure chamber music rare record groove full song',
+    'rare baroque vinyl rip deep cut pressing full track',
+    'obscure piano sonata rare groove full song',
+    'rare orchestral vinyl rip hidden gem full track',
+    'obscure classical guitar rare pressing groove full song',
+    'rare romantic era piano vinyl rip deep cut full track',
+    'obscure classical recording rare groove full song',
+    'rare vintage classical vinyl rip pressing full track',
+    'obscure classical ensemble rare hidden gem full song',
+    'rare chamber music vinyl rip groove deep cut full track',
+    'obscure piano recording rare pressing full song',
+    'rare classical groove vinyl rip hidden gem full track'
   ]
 };
 
@@ -399,43 +396,32 @@ var SEARCH_TERMS = {
 // STRICT BLOCK LIST — title must not contain any of these
 // ─────────────────────────────────────────────────────────────
 var BLOCKED_TITLE = [
-  // Tutorials / education
   'tutorial','how to','how-to','lesson','learn','teach','course',
-  'tip','trick','explained','music theory','chord','scale','arpeggio',
-  // Reactions / reviews
-  'review','react','reaction','first listen','blind reaction','producer reacts',
-  // Non-music content
-  'interview','podcast','vlog','documentary','behind the scenes',
-  'making of','ranking','top 10','top 5','best of','worst of',
-  'versus',' vs ','comparison','unboxing',
-  // Production / gear
-  'gear','setup','equipment','plugin','vst','daw','fl studio',
-  'ableton','logic pro','pro tools','mixing','mastering',
-  // Covers / performances
-  'cover','karaoke','drum cover','guitar cover','piano cover',
-  'bass cover','live performance','concert','live at',
-  // YouTube specific junk
+  'tip','trick','review','react','reaction','interview','podcast',
+  'vlog','documentary','explained','breakdown','analysis',
+  'making of','behind the scenes','gear','setup','equipment',
+  'plugin','vst','daw','fl studio','ableton','logic pro',
+  'pro tools','mixing','mastering','music theory',
+  'chord progression','scale','cover','karaoke',
+  'live performance','concert','live at',
   'shorts','#shorts','trailer','teaser','visualizer',
   'lyric video','lyrics video','official video','music video',
-  // Sample packs / beat selling
   'sample pack','drum kit','loop pack','free download',
   'free beat','type beat','typebeat','beat making',
-  'remix contest','beat tape intro','beat tape outro',
-  // Playlists / compilations signifiers
-  'full album','full playlist','mix tape','mixtape',
-  'compilation vol','best of','greatest hits','collection',
-  '#1','number one hit'
+  'producer reacts','first listen','blind reaction',
+  'unboxing','ranking','top 10','top 5','best of','worst',
+  'versus','vs','comparison',
+  'full album','greatest hits','compilation','mixtape',
+  'documentary','playlist'
 ];
 
 // ─────────────────────────────────────────────────────────────
-// ALLOWED SIGNALS — title should ideally contain at least one
-// (soft check — doesn't disqualify but boosts confidence)
+// MUSIC SCORING — score each title 0-10
 // ─────────────────────────────────────────────────────────────
-var MUSIC_SIGNALS = [
-  'vinyl','45 rpm','full song','full track','rare','obscure',
-  'groove','soul','jazz','funk','blues','reggae','afro','latin',
-  'psych','gospel','classic','record','pressing','reissue',
-  'original','lp','ep','single','audio'
+var SCORE_WORDS = [
+  'vinyl','rare','obscure','groove','soul','jazz','funk','blues',
+  'reggae','afro','latin','psych','gospel','classic','record',
+  'pressing','45','lp','ep','single'
 ];
 
 var KEYS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
@@ -466,6 +452,16 @@ function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
 function decodeHtml(html){var el=document.createElement('textarea');el.innerHTML=html;return el.value;}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}
 
+// Parse ISO 8601 duration (PT4M33S, PT1H2M10S, etc.) to seconds
+function parseDuration(iso){
+  var m=iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if(!m) return 0;
+  var h=parseInt(m[1]||'0',10);
+  var min=parseInt(m[2]||'0',10);
+  var sec=parseInt(m[3]||'0',10);
+  return h*3600+min*60+sec;
+}
+
 function buildQuery(){
   var g=document.getElementById('genreSelect').value;
   var e=document.getElementById('eraSelect').value;
@@ -473,7 +469,6 @@ function buildQuery(){
   var terms=SEARCH_TERMS[g]||SEARCH_TERMS['soul_jazz'];
   var q=terms[Math.floor(Math.random()*terms.length)];
   if(e) q+=' '+e;
-  // mood as subtle descriptor — not dominant
   var moodMap={
     melancholy:'slow minor',upbeat:'upbeat fast',
     dark:'dark minor',smooth:'smooth mellow',
@@ -497,18 +492,21 @@ function isMusicOnly(title){
   return true;
 }
 
-// Score how music-like a title is (higher = better)
+// Score how music-like a title is (0-10 scale)
 function musicScore(title){
   var t=title.toLowerCase();
   var score=0;
-  for(var i=0;i<MUSIC_SIGNALS.length;i++){
-    if(t.indexOf(MUSIC_SIGNALS[i])!==-1) score++;
-  }
-  // Bonus: contains a dash (Artist - Title pattern)
+  // +2 for Artist - Title pattern
   if(t.indexOf(' - ')!==-1) score+=2;
-  // Bonus: contains year in parens like (1974)
-  if(/\(1[6-9]\d\d\)/.test(t)) score+=2;
-  return score;
+  // +2 for year in parentheses like (1974)
+  if(/\(1[6-9]\d\d\)|\(20[0-2]\d\)/.test(t)) score+=2;
+  // +1 for each matching keyword (cap at 6 to stay within 0-10)
+  var kwHits=0;
+  for(var i=0;i<SCORE_WORDS.length;i++){
+    if(t.indexOf(SCORE_WORDS[i])!==-1) kwHits++;
+  }
+  score+=Math.min(kwHits,6);
+  return Math.min(score,10);
 }
 
 function resetDetector(){
@@ -601,13 +599,13 @@ async function digNewSample(){
     attempts++;
     try{
       var query=buildQuery();
+      // PASS 1: Search for music videos
       var url='https://www.googleapis.com/youtube/v3/search'
         +'?part=snippet'
         +'&q='+encodeURIComponent(query)
-        +'&type=video'              // videos only — no playlists, no channels
-        +'&videoCategoryId=10'      // Music category only
-        +'&maxResults=25'           // Pull more candidates for better filtering
-        +'&videoDuration=any'       // allow all lengths, filter shorts by title block list
+        +'&type=video'
+        +'&videoCategoryId=10'
+        +'&maxResults=25'
         +'&safeSearch=none'
         +'&key='+YT_API_KEY
         +'&order=relevance';
@@ -615,28 +613,61 @@ async function digNewSample(){
       var res=await fetch(url);
       var data=await res.json();
 
-      if(data.items&&data.items.length>0){
-        // Filter strictly for music-only titles
-        var passed=[];
-        for(var i=0;i<data.items.length;i++){
-          var t=data.items[i].snippet.title;
-          if(isMusicOnly(t)){
-            passed.push({
-              id:data.items[i].id.videoId,
-              title:t,
-              score:musicScore(t)
-            });
-          }
+      if(!data.items||data.items.length===0) continue;
+
+      // Title filter first
+      var titlePassed=[];
+      for(var i=0;i<data.items.length;i++){
+        var t=data.items[i].snippet.title;
+        if(isMusicOnly(t)){
+          titlePassed.push({
+            id:data.items[i].id.videoId,
+            title:t
+          });
         }
-        if(passed.length>0){
-          // Sort by music score descending, pick from top 5 randomly
-          passed.sort(function(a,b){return b.score-a.score;});
-          var topN=passed.slice(0,Math.min(5,passed.length));
-          var pick=topN[Math.floor(Math.random()*topN.length)];
-          videoId=pick.id;
-          title=pick.title;
-          found=true;
+      }
+      if(titlePassed.length===0) continue;
+
+      // PASS 2: Get real durations via videos endpoint
+      var ids=titlePassed.map(function(v){return v.id;}).join(',');
+      var durUrl='https://www.googleapis.com/youtube/v3/videos'
+        +'?part=contentDetails'
+        +'&id='+ids
+        +'&key='+YT_API_KEY;
+
+      var durRes=await fetch(durUrl);
+      var durData=await durRes.json();
+
+      if(!durData.items) continue;
+
+      // Build duration map
+      var durMap={};
+      for(var d=0;d<durData.items.length;d++){
+        var sec=parseDuration(durData.items[d].contentDetails.duration);
+        durMap[durData.items[d].id]=sec;
+      }
+
+      // Filter: only 60-300 seconds (1-5 min). Hard filter.
+      var passed=[];
+      for(var j=0;j<titlePassed.length;j++){
+        var dur=durMap[titlePassed[j].id];
+        if(dur&&dur>=60&&dur<=300){
+          passed.push({
+            id:titlePassed[j].id,
+            title:titlePassed[j].title,
+            score:musicScore(titlePassed[j].title)
+          });
         }
+      }
+
+      if(passed.length>0){
+        // Sort by music score descending, pick randomly from top 5
+        passed.sort(function(a,b){return b.score-a.score;});
+        var topN=passed.slice(0,Math.min(5,passed.length));
+        var pick=topN[Math.floor(Math.random()*topN.length)];
+        videoId=pick.id;
+        title=pick.title;
+        found=true;
       }
     } catch(err){ break; }
   }
