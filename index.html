@@ -5,470 +5,83 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CRATEDIG — Random Sample Discovery + BPM/Key Detector</title>
   <meta name="description" content="Dig random music samples by genre, era and mood. Detect BPM and key instantly. Built for producers." />
-  <meta property="og:title" content="CRATEDIG" />
-  <meta property="og:description" content="Random sample discovery + BPM/Key detection for producers." />
-  <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0a0a0a;
-      --surface: #111111;
-      --surface2: #1a1a1a;
-      --border: rgba(255,255,255,0.08);
-      --border2: rgba(255,255,255,0.14);
-      --accent: #c8f135;
-      --accent2: #7ef2c0;
-      --text: #f0ede6;
-      --muted: #777;
-      --mono: 'Space Mono', monospace;
-      --sans: 'DM Sans', sans-serif;
+      --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+      --accent: #c8f135; --accent2: #7ef2c0; --text: #f0ede6; --muted: #777;
+      --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
     }
-
-    html, body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      min-height: 100vh;
-    }
-
-    .app {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 32px 20px 48px;
-    }
-
-    /* ── Header ── */
-    .header {
-      display: flex;
-      align-items: baseline;
-      gap: 14px;
-      margin-bottom: 32px;
-    }
-
-    .logo {
-      font-family: var(--mono);
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--accent);
-      letter-spacing: -1px;
-    }
-
-    .tagline {
-      font-size: 13px;
-      color: var(--muted);
-      font-family: var(--mono);
-    }
-
-    /* ── Filters ── */
-    .filters {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto;
-      gap: 10px;
-      margin-bottom: 16px;
-      align-items: end;
-    }
-
-    @media (max-width: 600px) {
-      .filters { grid-template-columns: 1fr 1fr; }
-      .dig-btn { grid-column: span 2; }
-    }
-
-    .filter-group label {
-      display: block;
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 6px;
-      font-family: var(--mono);
-    }
-
-    select {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 6px;
-      font-family: var(--sans);
-      font-size: 14px;
-      outline: none;
-      appearance: none;
-      cursor: pointer;
-      transition: border-color 0.15s;
-    }
-
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+    .app { max-width: 860px; margin: 0 auto; padding: 32px 20px 48px; }
+    .header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 32px; }
+    .logo { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--accent); letter-spacing: -1px; }
+    .tagline { font-size: 13px; color: var(--muted); font-family: var(--mono); }
+    .filters { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; align-items: end; }
+    @media (max-width: 600px) { .filters { grid-template-columns: 1fr 1fr; } .dig-btn { grid-column: span 2; } }
+    .filter-group label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-family: var(--mono); }
+    select { width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 10px 12px; border-radius: 6px; font-family: var(--sans); font-size: 14px; outline: none; appearance: none; cursor: pointer; }
     select:focus { border-color: var(--accent); }
-
-    .dig-btn {
-      background: var(--accent);
-      color: #0a0a0a;
-      border: none;
-      padding: 11px 24px;
-      border-radius: 6px;
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-      letter-spacing: 0.04em;
-      transition: opacity 0.15s, transform 0.1s;
-    }
-
-    .dig-btn:hover { opacity: 0.85; }
-    .dig-btn:active { transform: scale(0.97); }
-    .dig-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-
-    /* ── Player ── */
-    .player-card {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
-
-    .video-wrap {
-      position: relative;
-      width: 100%;
-      padding-top: 42%;
-      background: #000;
-    }
-
-    .video-wrap iframe {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    .placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      color: var(--muted);
-    }
-
-    .placeholder-icon {
-      width: 52px;
-      height: 52px;
-      border: 2px solid var(--border2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-
-    .meta-row {
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      border-top: 1px solid var(--border);
-    }
-
-    .track-title {
-      font-size: 14px;
-      font-weight: 500;
-      flex: 1;
-      min-width: 150px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .badges {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      font-family: var(--mono);
-      font-size: 11px;
-      padding: 3px 9px;
-      border-radius: 4px;
-      font-weight: 700;
-    }
-
-    .badge-bpm  { background: rgba(200,241,53,0.12); color: var(--accent);  border: 1px solid rgba(200,241,53,0.25); }
-    .badge-key  { background: rgba(126,242,192,0.12); color: var(--accent2); border: 1px solid rgba(126,242,192,0.25); }
-    .badge-genre { background: rgba(255,255,255,0.06); color: var(--muted);  border: 1px solid var(--border); }
-
-    .action-row {
-      padding: 0 16px 14px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .act-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      color: var(--text);
-      padding: 7px 14px;
-      border-radius: 5px;
-      font-size: 12px;
-      font-family: var(--mono);
-      cursor: pointer;
-      transition: all 0.12s;
-    }
-
+    .dig-btn { background: var(--accent); color: #0a0a0a; border: none; padding: 11px 24px; border-radius: 6px; font-family: var(--mono); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .dig-btn:hover { opacity: 0.85; } .dig-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .player-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+    .video-wrap { position: relative; width: 100%; padding-top: 42%; background: #000; }
+    .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+    .placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); }
+    .placeholder-icon { width: 52px; height: 52px; border: 2px solid var(--border2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .meta-row { padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--border); }
+    .track-title { font-size: 14px; font-weight: 500; flex: 1; min-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .badge { font-family: var(--mono); font-size: 11px; padding: 3px 9px; border-radius: 4px; font-weight: 700; }
+    .badge-bpm { background: rgba(200,241,53,0.12); color: var(--accent); border: 1px solid rgba(200,241,53,0.25); }
+    .badge-key { background: rgba(126,242,192,0.12); color: var(--accent2); border: 1px solid rgba(126,242,192,0.25); }
+    .badge-genre { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border); }
+    .action-row { padding: 0 16px 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .act-btn { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 7px 14px; border-radius: 5px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.12s; }
     .act-btn:hover { border-color: var(--accent); color: var(--accent); }
     .act-btn.copied { color: var(--accent2); border-color: var(--accent2); }
-
-    /* ── Detector ── */
-    .detector-card {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .det-header {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      font-family: var(--mono);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--muted);
-      flex-shrink: 0;
-      transition: background 0.3s;
-    }
-
+    .detector-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .det-header { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-family: var(--mono); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background 0.3s; }
     .status-dot.live { background: var(--accent); }
-
-    .det-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-    }
-
-    .det-stat {
-      background: var(--surface2);
-      border-radius: 6px;
-      padding: 12px;
-      text-align: center;
-    }
-
-    .det-label {
-      font-size: 10px;
-      color: var(--muted);
-      font-family: var(--mono);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 6px;
-    }
-
-    .det-value {
-      font-family: var(--mono);
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .det-value.bpm-val { color: var(--accent); }
-    .det-value.key-val { color: var(--accent2); }
-
-    .detecting-bar {
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      border-radius: 2px;
-      margin-top: 14px;
-      width: 0%;
-      transition: width 0.25s ease;
-    }
-
-    /* ── Upload ── */
-    .upload-section {
-      background: var(--surface);
-      border: 1px dashed var(--border2);
-      border-radius: 10px;
-      padding: 22px;
-      text-align: center;
-      margin-bottom: 16px;
-      transition: border-color 0.2s;
-    }
-
-    .upload-section:hover { border-color: rgba(200,241,53,0.3); }
-
-    .upload-section p {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 12px;
-    }
-
-    .upload-btn-wrap {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
+    .det-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .det-stat { background: var(--surface2); border-radius: 6px; padding: 12px; text-align: center; }
+    .det-label { font-size: 10px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .det-value { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--text); }
+    .det-value.bpm-val { color: var(--accent); } .det-value.key-val { color: var(--accent2); }
+    .detecting-bar { height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; margin-top: 14px; width: 0%; transition: width 0.25s ease; }
+    .upload-section { background: var(--surface); border: 1px dashed var(--border2); border-radius: 10px; padding: 22px; text-align: center; margin-bottom: 16px; }
+    .upload-section p { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+    .upload-btn-wrap { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
     input[type="file"] { display: none; }
-
-    .upload-label {
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      color: var(--text);
-      padding: 8px 18px;
-      border-radius: 5px;
-      font-size: 12px;
-      font-family: var(--mono);
-      cursor: pointer;
-      transition: all 0.12s;
-    }
-
+    .upload-label { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 8px 18px; border-radius: 5px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.12s; }
     .upload-label:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* ── History ── */
-    .history-section { margin-top: 6px; }
-
-    .history-header {
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--muted);
-      font-family: var(--mono);
-      margin-bottom: 10px;
-    }
-
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .history-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 9px 12px;
-      cursor: pointer;
-      transition: border-color 0.12s;
-      font-size: 12px;
-    }
-
+    .history-header { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-family: var(--mono); margin-bottom: 10px; }
+    .history-list { display: flex; flex-direction: column; gap: 6px; }
+    .history-item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; cursor: pointer; font-size: 12px; }
     .history-item:hover { border-color: var(--border2); }
-
-    .hi-title {
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: var(--text);
-    }
-
-    .hi-badge {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    /* ── Spinner ── */
-    .spinner {
-      display: inline-block;
-      width: 13px;
-      height: 13px;
-      border: 2px solid rgba(10,10,10,0.3);
-      border-top-color: #0a0a0a;
-      border-radius: 50%;
-      animation: spin 0.65s linear infinite;
-      vertical-align: middle;
-    }
-
+    .hi-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+    .hi-badge { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; }
+    .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(10,10,10,0.3); border-top-color: #0a0a0a; border-radius: 50%; animation: spin 0.65s linear infinite; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Toast ── */
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(70px);
-      background: var(--surface2);
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      padding: 9px 20px;
-      border-radius: 6px;
-      font-family: var(--mono);
-      font-size: 12px;
-      transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
-      z-index: 1000;
-      pointer-events: none;
-    }
-
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(70px); background: var(--surface2); border: 1px solid var(--accent); color: var(--accent); padding: 9px 20px; border-radius: 6px; font-family: var(--mono); font-size: 12px; transition: transform 0.22s; z-index: 1000; pointer-events: none; }
     .toast.show { transform: translateX(-50%) translateY(0); }
-
-    /* ── Footer signature ── */
-    .footer-sig {
-      margin-top: 40px;
-      padding-top: 18px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .sig-line {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: rgba(255,255,255,0.18);
-      letter-spacing: 0.06em;
-    }
-
-    .sig-name {
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 700;
-      color: rgba(200,241,53,0.45);
-      letter-spacing: 0.06em;
-    }
-
-    .sig-dot {
-      width: 3px;
-      height: 3px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.15);
-    }
+    .footer-sig { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .sig-line { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.18); letter-spacing: 0.06em; }
+    .sig-name { font-family: var(--mono); font-size: 13px; font-weight: 700; color: rgba(200,241,53,0.45); letter-spacing: 0.06em; }
+    .sig-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.15); }
   </style>
 </head>
 <body>
-
 <div class="app">
-
   <div class="header">
     <div class="logo">CRATEDIG</div>
     <div class="tagline">// random sample discovery + key/bpm detection</div>
   </div>
-
   <div class="filters">
     <div class="filter-group">
       <label>Genre</label>
@@ -510,403 +123,300 @@
         <option value="dreamy ethereal">Dreamy</option>
       </select>
     </div>
-    <<button class="dig-btn" id="digBtn">DIG CRATE</button>
+    <button class="dig-btn" id="digBtn">DIG CRATE</button>
   </div>
-
   <div class="player-card">
     <div class="video-wrap" id="videoWrap">
-      <div class="placeholder" id="placeholder">
+      <div class="placeholder">
         <div class="placeholder-icon">&#9654;</div>
         <span style="font-size:12px;font-family:var(--mono)">hit dig crate to find a sample</span>
       </div>
     </div>
     <div class="meta-row" id="metaRow" style="display:none">
-      <div class="track-title" id="trackTitle">—</div>
+      <div class="track-title" id="trackTitle">-</div>
       <div class="badges" id="badgeRow"></div>
     </div>
     <div class="action-row" id="actionRow" style="display:none">
-      <button class="act-btn" id="copyBtn" onclick="copyLink()">⎘ copy link</button>
-      <button class="act-btn" onclick="digNewSample()">↻ next sample</button>
-      <button class="act-btn" onclick="openYouTube()">↗ open on youtube</button>
+      <button class="act-btn" id="copyBtn">copy link</button>
+      <button class="act-btn" id="nextBtn">next sample</button>
+      <button class="act-btn" id="ytBtn">open on youtube</button>
     </div>
   </div>
-
   <div class="detector-card">
     <div class="det-header">
       <span class="status-dot" id="statusDot"></span>
       bpm + key detector
     </div>
     <div class="det-grid">
-      <div class="det-stat">
-        <div class="det-label">BPM</div>
-        <div class="det-value bpm-val" id="bpmVal">—</div>
-      </div>
-      <div class="det-stat">
-        <div class="det-label">Key</div>
-        <div class="det-value key-val" id="keyVal">—</div>
-      </div>
-      <div class="det-stat">
-        <div class="det-label">Mode</div>
-        <div class="det-value" id="modeVal" style="font-size:18px;padding-top:3px">—</div>
-      </div>
+      <div class="det-stat"><div class="det-label">BPM</div><div class="det-value bpm-val" id="bpmVal">-</div></div>
+      <div class="det-stat"><div class="det-label">Key</div><div class="det-value key-val" id="keyVal">-</div></div>
+      <div class="det-stat"><div class="det-label">Mode</div><div class="det-value" id="modeVal" style="font-size:18px;padding-top:3px">-</div></div>
     </div>
     <div class="detecting-bar" id="detectBar"></div>
   </div>
-
   <div class="upload-section">
     <p>Upload your own audio to detect its key + BPM</p>
     <div class="upload-btn-wrap">
-      <label class="upload-label" for="audioFile">↑ upload audio</label>
-      <input type="file" id="audioFile" accept="audio/*" onchange="analyzeUpload(this)" />
+      <label class="upload-label" for="audioFile">upload audio</label>
+      <input type="file" id="audioFile" accept="audio/*" />
       <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">mp3 · wav · ogg</span>
     </div>
   </div>
-
   <div id="historySection" style="display:none;margin-top:16px">
     <div class="history-header">recent digs</div>
     <div class="history-list" id="historyList"></div>
   </div>
-
   <div class="footer-sig">
     <span class="sig-line">crafted by</span>
     <span class="sig-dot"></span>
     <span class="sig-name">HILLBOY</span>
     <span class="sig-dot"></span>
-    <span class="sig-line">cratedig.io</span>
+    <span class="sig-line">cratedig.site</span>
   </div>
-
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
-  // ─────────────────────────────────────────────
-  // CONFIG — replace with your YouTube API key
-  // ─────────────────────────────────────────────
-  const YT_API_KEY = 'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0
+var YT_API_KEY = 'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0
 ';
-
-  // ─────────────────────────────────────────────
-  // Data
-  // ─────────────────────────────────────────────
-  const SEARCH_TERMS = {
-    'soul jazz vinyl sample':       ['soul jazz 1970s vinyl', 'jazz funk breaks classic', 'soul groove sample 70s'],
-    'boom bap hip hop sample':      ['boom bap sample instrumental', 'hip hop crate dig underground', 'raw hip hop sample'],
-    'funk break sample':            ['funky breakbeat sample', 'james brown style funk groove', 'classic funk break drums'],
-    'lo fi chill sample':           ['lo fi chill sample tape', 'lofi hip hop mellow sample', 'chill beats sample vintage'],
-    'afrobeat sample':              ['afrobeat sample groove', 'afro funk highlife groove', 'west african rhythm sample'],
-    'latin bossa nova sample':      ['bossa nova sample classic', 'latin jazz groove sample', 'samba rhythm groove'],
-    'electronic ambient sample':    ['ambient electronic sample', 'synthesizer sample electronic', 'electronic music groove'],
-    'gospel soul sample':           ['gospel choir sample', 'soul gospel organ groove', 'southern soul gospel sample'],
-    'psychedelic rock sample':      ['psychedelic rock sample 70s', 'psych rock groove vintage', 'classic rock sample groove'],
-    'reggae dub sample':            ['reggae dub sample classic', 'roots reggae groove sample', 'dub music groove sample'],
-    'blues sample':                 ['blues guitar sample classic', 'chicago blues groove', 'delta blues vintage sample'],
-    'classical orchestral sample':  ['classical orchestral sample', 'cinematic strings sample', 'film score orchestral groove'],
-  };
-
-  const KEYS  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-  const MODES = ['Major','Minor'];
-
-  const FALLBACKS = [
-    { id: 'sM4p_WsQ1Sc', title: 'James Brown - Funky Drummer' },
-    { id: 'fVZFDoAbGh4', title: 'Bob James - Take Me To The Mardi Gras' },
-    { id: 'XHbFzlCBbfs', title: 'Grover Washington Jr. - Mr. Magic' },
-    { id: 'tMVBJp4GJb8', title: 'Roy Ayers - Everybody Loves The Sunshine' },
-    { id: 'ZAw5VvOF7MQ', title: 'Ahmad Jamal - Swahililand' },
-    { id: 'rE6yjmQJGBM', title: 'Cymande - Bra' },
-    { id: 'Hm2NG9-pqbQ', title: 'The Incredible Bongo Band - Apache' },
-    { id: 'yq5rBD_P3Ps', title: 'Idris Muhammad - Could Heaven Ever Be Like This' },
-    { id: 'zGXUbYNNGGA', title: 'Donald Byrd - Wind Parade' },
-    { id: 'gdzrNAFkRKs', title: 'Gil Scott-Heron - The Bottle' },
-  ];
-
-  let currentVideoId = null;
-  let digHistory = [];
-  let audioCtx = null;
-
-  // ─────────────────────────────────────────────
-  // Helpers
-  // ─────────────────────────────────────────────
-  function rnd(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-
-  function decodeHtml(html) {
-    const el = document.createElement('textarea');
-    el.innerHTML = html;
-    return el.value;
-  }
-
-  function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2400);
-  }
-
-  function buildQuery() {
-    const g = document.getElementById('genreSelect').value;
-    const e = document.getElementById('eraSelect').value;
-    const m = document.getElementById('moodSelect').value;
-    const terms = SEARCH_TERMS[g] || [g];
-    let q = terms[Math.floor(Math.random() * terms.length)];
-    if (e) q += ' ' + e;
-    if (m) q += ' ' + m;
-    return q;
-  }
-
-  function getGenreLabel() {
-    const sel = document.getElementById('genreSelect');
-    return sel.options[sel.selectedIndex].text;
-  }
-
-  // ─────────────────────────────────────────────
-  // Core: dig a sample
-  // ─────────────────────────────────────────────
-  async function digNewSample() {
-    const btn = document.getElementById('digBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>';
-    resetDetector();
-
-    let videoId, title;
-
-    try {
-      const query = buildQuery();
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoCategoryId=10&maxResults=10&key=${YT_API_KEY}&order=relevance`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.items && data.items.length > 0) {
-        const pick = data.items[Math.floor(Math.random() * data.items.length)];
-        videoId = pick.id.videoId;
-        title = pick.snippet.title;
-      } else {
-        throw new Error('empty');
-      }
-    } catch (_) {
-      const fb = FALLBACKS[Math.floor(Math.random() * FALLBACKS.length)];
-      videoId = fb.id;
-      title = fb.title;
+var SEARCH_TERMS = {
+  'soul jazz vinyl sample': ['soul jazz 1970s vinyl','jazz funk breaks classic','soul groove sample 70s'],
+  'boom bap hip hop sample': ['boom bap sample instrumental','hip hop crate dig underground','raw hip hop sample'],
+  'funk break sample': ['funky breakbeat sample','james brown style funk groove','classic funk break drums'],
+  'lo fi chill sample': ['lo fi chill sample tape','lofi hip hop mellow sample','chill beats sample vintage'],
+  'afrobeat sample': ['afrobeat sample groove','afro funk highlife groove','west african rhythm sample'],
+  'latin bossa nova sample': ['bossa nova sample classic','latin jazz groove sample','samba rhythm groove'],
+  'electronic ambient sample': ['ambient electronic sample','synthesizer sample electronic','electronic music groove'],
+  'gospel soul sample': ['gospel choir sample','soul gospel organ groove','southern soul gospel sample'],
+  'psychedelic rock sample': ['psychedelic rock sample 70s','psych rock groove vintage','classic rock sample groove'],
+  'reggae dub sample': ['reggae dub sample classic','roots reggae groove sample','dub music groove sample'],
+  'blues sample': ['blues guitar sample classic','chicago blues groove','delta blues vintage sample'],
+  'classical orchestral sample': ['classical orchestral sample','cinematic strings sample','film score orchestral groove']
+};
+var KEYS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+var FALLBACKS = [
+  {id:'sM4p_WsQ1Sc',title:'James Brown - Funky Drummer'},
+  {id:'fVZFDoAbGh4',title:'Bob James - Take Me To The Mardi Gras'},
+  {id:'XHbFzlCBbfs',title:'Grover Washington Jr. - Mr. Magic'},
+  {id:'tMVBJp4GJb8',title:'Roy Ayers - Everybody Loves The Sunshine'},
+  {id:'ZAw5VvOF7MQ',title:'Ahmad Jamal - Swahililand'},
+  {id:'rE6yjmQJGBM',title:'Cymande - Bra'},
+  {id:'Hm2NG9-pqbQ',title:'The Incredible Bongo Band - Apache'},
+  {id:'yq5rBD_P3Ps',title:'Idris Muhammad - Could Heaven Ever Be Like This'},
+  {id:'zGXUbYNNGGA',title:'Donald Byrd - Wind Parade'},
+  {id:'gdzrNAFkRKs',title:'Gil Scott-Heron - The Bottle'}
+];
+var currentVideoId = null;
+var digHistory = [];
+var audioCtx = null;
+function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function decodeHtml(html){var el=document.createElement('textarea');el.innerHTML=html;return el.value;}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}
+function buildQuery(){
+  var g=document.getElementById('genreSelect').value;
+  var e=document.getElementById('eraSelect').value;
+  var m=document.getElementById('moodSelect').value;
+  var terms=SEARCH_TERMS[g]||[g];
+  var q=terms[Math.floor(Math.random()*terms.length)];
+  if(e) q+=' '+e;
+  if(m) q+=' '+m;
+  return q;
+}
+function getGenreLabel(){var sel=document.getElementById('genreSelect');return sel.options[sel.selectedIndex].text;}
+function resetDetector(){
+  document.getElementById('statusDot').className='status-dot';
+  document.getElementById('bpmVal').textContent='-';
+  document.getElementById('keyVal').textContent='-';
+  document.getElementById('modeVal').textContent='-';
+  document.getElementById('detectBar').style.width='0%';
+}
+function simulateDetection(){
+  document.getElementById('bpmVal').textContent='...';
+  document.getElementById('keyVal').textContent='...';
+  document.getElementById('modeVal').textContent='...';
+  var bar=document.getElementById('detectBar');
+  bar.style.width='0%';
+  var p=0;
+  var iv=setInterval(function(){
+    p+=rnd(8,16);
+    bar.style.width=Math.min(p,95)+'%';
+    if(p>=100){
+      clearInterval(iv);
+      bar.style.width='100%';
+      var bpm=rnd(70,140);
+      var key=KEYS[Math.floor(Math.random()*KEYS.length)];
+      var mode=Math.random()>0.5?'Major':'Minor';
+      document.getElementById('bpmVal').textContent=bpm;
+      document.getElementById('keyVal').textContent=key;
+      document.getElementById('modeVal').textContent=mode;
+      document.getElementById('statusDot').className='status-dot live';
+      var br=document.getElementById('badgeRow');
+      br.innerHTML+='<span class="badge badge-bpm">'+bpm+' BPM</span><span class="badge badge-key">'+key+' '+mode+'</span>';
+      setTimeout(function(){bar.style.width='0%';},1600);
     }
-
-    currentVideoId = videoId;
-    loadVideo(videoId, title, getGenreLabel());
-    btn.disabled = false;
-    btn.textContent = 'DIG CRATE';
+  },110);
+}
+function loadVideo(videoId,title,genre){
+  currentVideoId=videoId;
+  var wrap=document.getElementById('videoWrap');
+  wrap.innerHTML='<iframe src="https://www.youtube.com/embed/'+videoId+'?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+  document.getElementById('trackTitle').textContent=decodeHtml(title);
+  document.getElementById('metaRow').style.display='flex';
+  document.getElementById('actionRow').style.display='flex';
+  document.getElementById('badgeRow').innerHTML='<span class="badge badge-genre">'+genre+'</span>';
+  addToHistory(videoId,title,genre);
+  simulateDetection();
+}
+function addToHistory(id,title,genre){
+  digHistory.unshift({id:id,title:title,genre:genre});
+  if(digHistory.length>10) digHistory.pop();
+  renderHistory();
+}
+function renderHistory(){
+  var sec=document.getElementById('historySection');
+  var list=document.getElementById('historyList');
+  if(digHistory.length===0){sec.style.display='none';return;}
+  sec.style.display='block';
+  var html='';
+  for(var i=0;i<digHistory.length;i++){
+    var h=digHistory[i];
+    html+='<div class="history-item" data-id="'+h.id+'" data-title="'+h.title.replace(/"/g,'&quot;')+'" data-genre="'+h.genre+'"><span class="hi-title">'+decodeHtml(h.title)+'</span><span class="hi-badge">'+h.genre+'</span></div>';
   }
-
-  function loadVideo(videoId, title, genre) {
-    const wrap = document.getElementById('videoWrap');
-    wrap.innerHTML = `<iframe
-      src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1"
-      allow="autoplay; encrypted-media"
-      allowfullscreen>
-    </iframe>`;
-
-    document.getElementById('trackTitle').textContent = decodeHtml(title);
-    document.getElementById('metaRow').style.display = 'flex';
-    document.getElementById('actionRow').style.display = 'flex';
-    document.getElementById('badgeRow').innerHTML = `<span class="badge badge-genre">${genre}</span>`;
-
-    addToHistory(videoId, title, genre);
-    simulateDetection();
-  }
-
-  // ─────────────────────────────────────────────
-  // BPM / Key: simulated for YouTube embeds
-  // (real analysis runs on uploaded files below)
-  // ─────────────────────────────────────────────
-  function simulateDetection() {
-    document.getElementById('statusDot').className = 'status-dot';
-    document.getElementById('bpmVal').textContent = '...';
-    document.getElementById('keyVal').textContent = '...';
-    document.getElementById('modeVal').textContent = '...';
-
-    const bar = document.getElementById('detectBar');
-    bar.style.width = '0%';
-    let p = 0;
-
-    const iv = setInterval(() => {
-      p += rnd(8, 16);
-      bar.style.width = Math.min(p, 95) + '%';
-      if (p >= 100) {
-        clearInterval(iv);
-        bar.style.width = '100%';
-
-        const bpm  = rnd(70, 140);
-        const key  = KEYS[Math.floor(Math.random() * KEYS.length)];
-        const mode = MODES[Math.floor(Math.random() * 2)];
-
-        document.getElementById('bpmVal').textContent  = bpm;
-        document.getElementById('keyVal').textContent  = key;
-        document.getElementById('modeVal').textContent = mode;
-        document.getElementById('statusDot').className = 'status-dot live';
-
-        const br = document.getElementById('badgeRow');
-        br.innerHTML += `<span class="badge badge-bpm">${bpm} BPM</span><span class="badge badge-key">${key} ${mode}</span>`;
-
-        setTimeout(() => { bar.style.width = '0%'; }, 1600);
-      }
-    }, 110);
-  }
-
-  function resetDetector() {
-    document.getElementById('statusDot').className = 'status-dot';
-    document.getElementById('bpmVal').textContent  = '—';
-    document.getElementById('keyVal').textContent  = '—';
-    document.getElementById('modeVal').textContent = '—';
-    document.getElementById('detectBar').style.width = '0%';
-  }
-
-  // ─────────────────────────────────────────────
-  // Copy link
-  // ─────────────────────────────────────────────
-  function copyLink() {
-    if (!currentVideoId) return;
-    const link = `https://www.youtube.com/watch?v=${currentVideoId}`;
-    navigator.clipboard.writeText(link).then(() => {
-      const btn = document.getElementById('copyBtn');
-      btn.classList.add('copied');
-      btn.textContent = '✓ copied';
-      showToast('link copied to clipboard');
-      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '⎘ copy link'; }, 2200);
+  list.innerHTML=html;
+  var items=list.querySelectorAll('.history-item');
+  for(var j=0;j<items.length;j++){
+    items[j].addEventListener('click',function(){
+      loadVideo(this.getAttribute('data-id'),this.getAttribute('data-title'),this.getAttribute('data-genre'));
     });
   }
-
-  function openYouTube() {
-    if (!currentVideoId) return;
-    window.open(`https://www.youtube.com/watch?v=${currentVideoId}`, '_blank');
+}
+async function digNewSample(){
+  var btn=document.getElementById('digBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>';
+  resetDetector();
+  var videoId,title;
+  try{
+    var query=buildQuery();
+    var url='https://www.googleapis.com/youtube/v3/search?part=snippet&q='+encodeURIComponent(query)+'&type=video&videoCategoryId=10&maxResults=10&key='+YT_API_KEY+'&order=relevance';
+    var res=await fetch(url);
+    var data=await res.json();
+    if(data.items&&data.items.length>0){
+      var pick=data.items[Math.floor(Math.random()*data.items.length)];
+      videoId=pick.id.videoId;
+      title=pick.snippet.title;
+    } else {
+      throw new Error('empty');
+    }
+  } catch(err){
+    var fb=FALLBACKS[Math.floor(Math.random()*FALLBACKS.length)];
+    videoId=fb.id;
+    title=fb.title;
   }
-
-  // ─────────────────────────────────────────────
-  // History
-  // ─────────────────────────────────────────────
-  function addToHistory(id, title, genre) {
-    digHistory.unshift({ id, title, genre });
-    if (digHistory.length > 10) digHistory.pop();
-    renderHistory();
+  loadVideo(videoId,title,getGenreLabel());
+  btn.disabled=false;
+  btn.textContent='DIG CRATE';
+}
+function copyLink(){
+  if(!currentVideoId) return;
+  var link='https://www.youtube.com/watch?v='+currentVideoId;
+  navigator.clipboard.writeText(link).then(function(){
+    var btn=document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.textContent='copied!';
+    showToast('link copied to clipboard');
+    setTimeout(function(){btn.classList.remove('copied');btn.textContent='copy link';},2200);
+  });
+}
+function openYouTube(){
+  if(!currentVideoId) return;
+  window.open('https://www.youtube.com/watch?v='+currentVideoId,'_blank');
+}
+function estimateBPM(data,sr){
+  var step=Math.floor(sr*0.01);
+  var energies=[];
+  for(var i=0;i+step<data.length;i+=step){
+    var e=0;
+    for(var j=0;j<step;j++) e+=data[i+j]*data[i+j];
+    energies.push(e/step);
   }
-
-  function renderHistory() {
-    const sec  = document.getElementById('historySection');
-    const list = document.getElementById('historyList');
-    if (digHistory.length === 0) { sec.style.display = 'none'; return; }
-    sec.style.display = 'block';
-    list.innerHTML = digHistory.map(h => `
-      <div class="history-item" onclick="reloadHistoryItem('${h.id}','${h.title.replace(/'/g,"\\'")}','${h.genre}')">
-        <span class="hi-title">${decodeHtml(h.title)}</span>
-        <span class="hi-badge">${h.genre}</span>
-      </div>
-    `).join('');
+  var diffs=[];
+  for(var k=1;k<energies.length;k++){var d=energies[k]-energies[k-1];diffs.push(d>0?d:0);}
+  var sum=0;
+  for(var l=0;l<diffs.length;l++) sum+=diffs[l];
+  var thresh=(sum/diffs.length)*1.2;
+  var beats=0,last=-100;
+  for(var m=0;m<diffs.length;m++){if(diffs[m]>thresh&&m-last>20){beats++;last=m;}}
+  var raw=(beats/(data.length/sr))*60;
+  if(raw<60) return Math.round(raw*2);
+  if(raw>170) return Math.round(raw/2);
+  return Math.round(raw);
+}
+function estimateKey(data,sr){
+  var fftSize=4096;
+  var chroma=[0,0,0,0,0,0,0,0,0,0,0,0];
+  var chunks=Math.min(8,Math.floor(data.length/fftSize));
+  var step=Math.floor(data.length/chunks);
+  for(var s=0;s<chunks;s++){
+    for(var i=0;i<fftSize;i++){
+      var idx=s*step+i;
+      if(idx>=data.length) continue;
+      var freq=(i/fftSize)*sr;
+      if(freq<80||freq>4000) continue;
+      var semi=Math.round(12*Math.log2(freq/440))%12;
+      chroma[((semi%12)+12)%12]+=Math.abs(data[idx]);
+    }
   }
-
-  function reloadHistoryItem(id, title, genre) {
-    currentVideoId = id;
-    loadVideo(id, title, genre);
-  }
-
-  // ─────────────────────────────────────────────
-  // Real audio analysis (uploaded files only)
-  // ─────────────────────────────────────────────
-  async function analyzeUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    showToast('analyzing audio...');
+  var maxIdx=0;
+  for(var n=1;n<12;n++){if(chroma[n]>chroma[maxIdx]) maxIdx=n;}
+  var note=KEYS[maxIdx];
+  var maj=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+  var min=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+  var ms=0,ns=0;
+  for(var p=0;p<12;p++){var cn=chroma[(p+maxIdx)%12];ms+=cn*maj[p];ns+=cn*min[p];}
+  return {note:note,mode:ms>ns?'Major':'Minor'};
+}
+async function analyzeUpload(input){
+  var file=input.files[0];
+  if(!file) return;
+  showToast('analyzing audio...');
+  resetDetector();
+  document.getElementById('bpmVal').textContent='...';
+  document.getElementById('keyVal').textContent='...';
+  document.getElementById('modeVal').textContent='...';
+  var bar=document.getElementById('detectBar');
+  var p=0;
+  var prog=setInterval(function(){p+=4;bar.style.width=Math.min(p,85)+'%';if(p>=85) clearInterval(prog);},60);
+  try{
+    if(!audioCtx) audioCtx=new AudioContext();
+    var arrayBuf=await file.arrayBuffer();
+    var audioBuf=await audioCtx.decodeAudioData(arrayBuf);
+    var data=audioBuf.getChannelData(0);
+    var sr=audioBuf.sampleRate;
+    var bpm=estimateBPM(data,sr);
+    var key=estimateKey(data,sr);
+    clearInterval(prog);
+    bar.style.width='100%';
+    document.getElementById('bpmVal').textContent=bpm;
+    document.getElementById('keyVal').textContent=key.note;
+    document.getElementById('modeVal').textContent=key.mode;
+    document.getElementById('statusDot').className='status-dot live';
+    document.getElementById('badgeRow').innerHTML='<span class="badge badge-bpm">'+bpm+' BPM</span><span class="badge badge-key">'+key.note+' '+key.mode+'</span>';
+    showToast('detected: '+bpm+' BPM - '+key.note+' '+key.mode);
+    setTimeout(function(){bar.style.width='0%';},1600);
+  } catch(err){
+    clearInterval(prog);
+    showToast('could not analyze - try a different file');
     resetDetector();
-    document.getElementById('bpmVal').textContent  = '...';
-    document.getElementById('keyVal').textContent  = '...';
-    document.getElementById('modeVal').textContent = '...';
-
-    const bar = document.getElementById('detectBar');
-    let p = 0;
-    const prog = setInterval(() => {
-      p += 4;
-      bar.style.width = Math.min(p, 85) + '%';
-      if (p >= 85) clearInterval(prog);
-    }, 60);
-
-    try {
-      if (!audioCtx) audioCtx = new AudioContext();
-      const arrayBuf = await file.arrayBuffer();
-      const audioBuf = await audioCtx.decodeAudioData(arrayBuf);
-      const data = audioBuf.getChannelData(0);
-      const sr   = audioBuf.sampleRate;
-
-      const bpm = estimateBPM(data, sr);
-      const key = estimateKey(data, sr);
-
-      clearInterval(prog);
-      bar.style.width = '100%';
-
-      document.getElementById('bpmVal').textContent  = bpm;
-      document.getElementById('keyVal').textContent  = key.note;
-      document.getElementById('modeVal').textContent = key.mode;
-      document.getElementById('statusDot').className = 'status-dot live';
-
-      document.getElementById('badgeRow').innerHTML =
-        `<span class="badge badge-bpm">${bpm} BPM</span>` +
-        `<span class="badge badge-key">${key.note} ${key.mode}</span>`;
-
-      showToast(`detected: ${bpm} BPM · ${key.note} ${key.mode}`);
-      setTimeout(() => { bar.style.width = '0%'; }, 1600);
-    } catch (e) {
-      clearInterval(prog);
-      console.error(e);
-      showToast('could not analyze — try a different file');
-      resetDetector();
-    }
-
-    input.value = '';
   }
-
-  function estimateBPM(data, sr) {
-    const step = Math.floor(sr * 0.01);
-    const energies = [];
-    for (let i = 0; i + step < data.length; i += step) {
-      let e = 0;
-      for (let j = 0; j < step; j++) e += data[i + j] ** 2;
-      energies.push(e / step);
-    }
-    const diffs = energies.map((v, i) => i === 0 ? 0 : Math.max(0, v - energies[i - 1]));
-    const thresh = (diffs.reduce((a, b) => a + b, 0) / diffs.length) * 1.2;
-    let beats = 0, last = -100;
-    diffs.forEach((d, i) => { if (d > thresh && i - last > 20) { beats++; last = i; } });
-    const raw = (beats / (data.length / sr)) * 60;
-    if (raw < 60)  return Math.round(raw * 2);
-    if (raw > 170) return Math.round(raw / 2);
-    return Math.round(raw);
-  }
-
-  function estimateKey(data, sr) {
-    const fftSize = 4096;
-    const chroma = new Array(12).fill(0);
-    const chunks = Math.min(8, Math.floor(data.length / fftSize));
-    const step   = Math.floor(data.length / chunks);
-
-    for (let s = 0; s < chunks; s++) {
-      const chunk = data.slice(s * step, s * step + fftSize);
-      for (let i = 0; i < fftSize; i++) {
-        const freq = (i / fftSize) * sr;
-        if (freq < 80 || freq > 4000 || !chunk[i]) continue;
-        const semi = Math.round(12 * Math.log2(freq / 440)) % 12;
-        chroma[((semi % 12) + 12) % 12] += Math.abs(chunk[i]);
-      }
-    }
-
-    const maxIdx = chroma.indexOf(Math.max(...chroma));
-    const note   = KEYS[maxIdx];
-    const maj = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
-    const min = [6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
-    let ms = 0, ns = 0;
-    for (let i = 0; i < 12; i++) {
-      const n = chroma[(i + maxIdx) % 12];
-      ms += n * maj[i];
-      ns += n * min[i];
-    }
-    return { note, mode: ms > ns ? 'Major' : 'Minor' };
-  }
-<document.getElementById('digBtn').addEventListener('click', digNewSample);
-document.getElementById('copyBtn').addEventListener('click', copyLink);
-/script>
-
+  input.value='';
+}
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('digBtn').addEventListener('click',digNewSample);
+  document.getElementById('copyBtn').addEventListener('click',copyLink);
+  document.getElementById('nextBtn').addEventListener('click',digNewSample);
+  document.getElementById('ytBtn').addEventListener('click',openYouTube);
+  document.getElementById('audioFile').addEventListener('change',function(){analyzeUpload(this);});
+});
+</script>
 </body>
 </html>
