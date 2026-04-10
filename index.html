@@ -299,7 +299,30 @@
 <div class="toast" id="toast"></div>
 
 <script>
-var YT_API_KEY = 'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0';
+var API_KEYS = [
+  'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0',
+  'AIzaSyBjrzVdK4lFMmbgrDeeDkoLmU7SvWgrYyY',
+  'AIzaSyCDBRrWlpZFc9gdKuEunuqm7UG0qm3vcGM'
+];
+var currentKeyIndex = 0;
+function getApiKey(){ return API_KEYS[currentKeyIndex]; }
+
+// Fetch with automatic key rotation on 403
+async function fetchWithKeyRotation(buildUrl){
+  var tried=0;
+  while(tried<API_KEYS.length){
+    var url=buildUrl(getApiKey());
+    var res=await fetch(url);
+    if(res.status===403){
+      tried++;
+      currentKeyIndex=(currentKeyIndex+1)%API_KEYS.length;
+      if(tried>=API_KEYS.length) return {allKeysExhausted:true};
+      continue;
+    }
+    return res;
+  }
+  return {allKeysExhausted:true};
+}
 
 // ─────────────────────────────────────────────────────────────
 // SEARCH STRATEGY v2.5
@@ -723,17 +746,24 @@ async function digNewSample(){
     try{
       var query=buildQuery();
       // PASS 1: Search for music videos
-      var url='https://www.googleapis.com/youtube/v3/search'
-        +'?part=snippet'
-        +'&q='+encodeURIComponent(query)
-        +'&type=video'
-        +'&videoCategoryId=10'
-        +'&maxResults=25'
-        +'&safeSearch=none'
-        +'&key='+YT_API_KEY
-        +'&order=relevance';
-
-      var res=await fetch(url);
+      var searchQuery=query;
+      var res=await fetchWithKeyRotation(function(key){
+        return 'https://www.googleapis.com/youtube/v3/search'
+          +'?part=snippet'
+          +'&q='+encodeURIComponent(searchQuery)
+          +'&type=video'
+          +'&videoCategoryId=10'
+          +'&maxResults=25'
+          +'&safeSearch=none'
+          +'&key='+key
+          +'&order=relevance';
+      });
+      if(res.allKeysExhausted){
+        showToast('Daily dig limit reached \u2014 come back tomorrow for more crates!');
+        var fb=FALLBACKS[Math.floor(Math.random()*FALLBACKS.length)];
+        loadVideo(fb.id,fb.title,getGenreLabel());
+        btn.disabled=false;btn.textContent='DIG CRATE';return;
+      }
       var data=await res.json();
 
       if(!data.items||data.items.length===0) continue;
@@ -753,12 +783,18 @@ async function digNewSample(){
 
       // PASS 2: Get real durations via videos endpoint
       var ids=titlePassed.map(function(v){return v.id;}).join(',');
-      var durUrl='https://www.googleapis.com/youtube/v3/videos'
-        +'?part=contentDetails'
-        +'&id='+ids
-        +'&key='+YT_API_KEY;
-
-      var durRes=await fetch(durUrl);
+      var durRes=await fetchWithKeyRotation(function(key){
+        return 'https://www.googleapis.com/youtube/v3/videos'
+          +'?part=contentDetails'
+          +'&id='+ids
+          +'&key='+key;
+      });
+      if(durRes.allKeysExhausted){
+        showToast('Daily dig limit reached \u2014 come back tomorrow for more crates!');
+        var fb=FALLBACKS[Math.floor(Math.random()*FALLBACKS.length)];
+        loadVideo(fb.id,fb.title,getGenreLabel());
+        btn.disabled=false;btn.textContent='DIG CRATE';return;
+      }
       var durData=await durRes.json();
 
       if(!durData.items) continue;
