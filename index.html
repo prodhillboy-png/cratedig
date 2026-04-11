@@ -7,85 +7,193 @@
   <meta name="description" content="Dig random music samples by genre, era and mood. Detect BPM and key instantly. Built for producers." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a;
-      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
-      --accent: #c8f135; --accent2: #7ef2c0; --text: #f0ede6; --muted: #777;
-      --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
+      --bg: #1a1a1a; --surface: #222222; --surface2: #2a2a2a;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.12);
+      --accent: #c8f135; --accent2: #7ef2c0; --text: #ffffff; --muted: #888888;
+      --heading: 'Syne', sans-serif; --body: 'Plus Jakarta Sans', sans-serif;
+      --glow: 0 0 15px rgba(200,241,53,0.35);
+      --glow-hover: 0 0 25px rgba(200,241,53,0.6);
+      --glow-strong: 0 0 20px rgba(200,241,53,0.4);
     }
-    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
-    .app { max-width: 860px; margin: 0 auto; padding: 32px 20px 48px; }
-    .header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 32px; }
-    .logo { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--accent); letter-spacing: -1px; }
-    .tagline { font-size: 13px; color: var(--muted); font-family: var(--mono); }
-    .filters { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; align-items: end; }
-    @media (max-width: 600px) { .filters { grid-template-columns: 1fr 1fr; } .dig-btn { grid-column: span 2; } }
-    .filter-group label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-family: var(--mono); }
-    select { width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 10px 12px; border-radius: 6px; font-family: var(--sans); font-size: 14px; outline: none; appearance: none; cursor: pointer; }
-    select:focus { border-color: var(--accent); }
-    .dig-btn { background: var(--accent); color: #0a0a0a; border: none; padding: 11px 24px; border-radius: 6px; font-family: var(--mono); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-    .dig-btn:hover { opacity: 0.85; } .dig-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-    .player-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
-    .video-wrap { position: relative; width: 100%; padding-top: 42%; background: #000; }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--body); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+    /* ── TOP NAV ── */
+    .top-nav { display: flex; align-items: center; gap: 12px; padding: 16px 28px; max-width: 1200px; margin: 0 auto; }
+    .nav-pill { background: var(--accent); color: #1a1a1a; border: none; padding: 9px 22px; border-radius: 50px; font-family: var(--body); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; box-shadow: var(--glow); transition: box-shadow 0.2s, opacity 0.15s; text-decoration: none; }
+    .nav-pill:hover { box-shadow: var(--glow-hover); }
+    .nav-search { flex: 1; max-width: 420px; }
+    .nav-search input { width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 9px 18px; border-radius: 50px; font-family: var(--body); font-size: 13px; outline: none; }
+    .nav-search input::placeholder { color: var(--muted); }
+    .nav-search input:focus { border-color: var(--accent); }
+    .nav-right { display: flex; gap: 8px; margin-left: auto; }
+    .nav-pill-outline { background: transparent; color: var(--text); border: 1px solid var(--border2); padding: 9px 22px; border-radius: 50px; font-family: var(--body); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .nav-pill-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── APP CONTAINER ── */
+    .app { max-width: 1200px; margin: 0 auto; padding: 12px 28px 48px; }
+
+    /* ── TWO COLUMN GRID ── */
+    .main-grid { display: grid; grid-template-columns: 45% 55%; gap: 36px; align-items: start; }
+    @media (max-width: 860px) {
+      .main-grid { grid-template-columns: 1fr; gap: 24px; }
+      .top-nav { flex-wrap: wrap; padding: 14px 16px; }
+      .nav-search { order: 3; max-width: 100%; flex-basis: 100%; }
+      .app { padding: 12px 16px 48px; }
+    }
+
+    /* ── LEFT COLUMN ── */
+    .col-left { padding-top: 20px; }
+    .hero-title { font-family: var(--heading); font-size: 48px; font-weight: 800; line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 14px; color: var(--text); }
+    @media (max-width: 860px) { .hero-title { font-size: 34px; } }
+    .hero-sub { font-size: 15px; color: var(--muted); line-height: 1.55; margin-bottom: 24px; max-width: 380px; }
+    .dig-btn { background: var(--accent); color: #1a1a1a; border: none; padding: 14px 36px; border-radius: 50px; font-family: var(--heading); font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; box-shadow: var(--glow-strong); transition: box-shadow 0.2s, opacity 0.15s; margin-bottom: 28px; }
+    .dig-btn:hover { box-shadow: var(--glow-hover); }
+    .dig-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+
+    /* ── GENRE PILLS ── */
+    .genre-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .genre-pill { background: var(--surface); color: var(--text); border: 1px solid var(--border2); padding: 7px 16px; border-radius: 50px; font-family: var(--body); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.18s; white-space: nowrap; }
+    .genre-pill:hover { border-color: var(--accent); color: var(--accent); }
+    .genre-pill.active { background: var(--accent); color: #1a1a1a; border-color: var(--accent); font-weight: 600; box-shadow: var(--glow); }
+
+    /* ── HIDDEN GENRE SELECT (JS reads from this) ── */
+    .hidden-select { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
+
+    /* ── ERA / MOOD FILTERS ── */
+    .filter-row { display: flex; gap: 10px; margin-bottom: 22px; }
+    .filter-row select { background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 8px 14px; border-radius: 50px; font-family: var(--body); font-size: 12px; outline: none; appearance: none; cursor: pointer; min-width: 110px; }
+    .filter-row select:focus { border-color: var(--accent); }
+
+    /* ── WAVEFORM VISUALIZER ── */
+    .waveform { display: flex; align-items: flex-end; gap: 2px; height: 64px; padding: 8px 0; }
+    .waveform .bar { flex: 1; background: var(--accent); border-radius: 2px 2px 0 0; min-width: 3px; opacity: 0.7; transition: height 0.15s ease; }
+    .waveform.active .bar { animation: pulse var(--dur) ease-in-out infinite alternate; }
+    @keyframes pulse {
+      0% { height: var(--h-min); opacity: 0.5; }
+      100% { height: var(--h-max); opacity: 1; }
+    }
+
+    /* ── RIGHT COLUMN ── */
+    .col-right { padding-top: 8px; }
+
+    /* ── PLAYER CARD ── */
+    .player-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+    .video-wrap { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: 12px 12px 0 0; overflow: hidden; }
     .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
-    .placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); }
-    .placeholder-icon { width: 52px; height: 52px; border: 2px solid var(--border2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--muted); }
+    .placeholder-icon { width: 56px; height: 56px; border: 2px solid var(--border2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
     .meta-row { padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--border); }
-    .track-title { font-size: 14px; font-weight: 500; flex: 1; min-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-title { font-family: var(--body); font-size: 14px; font-weight: 600; flex: 1; min-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .badges { display: flex; gap: 6px; flex-wrap: wrap; }
-    .badge { font-family: var(--mono); font-size: 11px; padding: 3px 9px; border-radius: 4px; font-weight: 700; }
+    .badge { font-family: var(--body); font-size: 11px; padding: 3px 10px; border-radius: 50px; font-weight: 600; }
     .badge-bpm { background: rgba(200,241,53,0.12); color: var(--accent); border: 1px solid rgba(200,241,53,0.25); }
     .badge-key { background: rgba(126,242,192,0.12); color: var(--accent2); border: 1px solid rgba(126,242,192,0.25); }
     .badge-genre { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border); }
+
+    /* ── ACTION BUTTONS ── */
     .action-row { padding: 0 16px 14px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .act-btn { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 7px 14px; border-radius: 5px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.12s; }
+    .act-btn { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 8px 16px; border-radius: 50px; font-size: 12px; font-family: var(--body); font-weight: 500; cursor: pointer; transition: all 0.15s; }
     .act-btn:hover { border-color: var(--accent); color: var(--accent); }
     .act-btn.copied { color: var(--accent2); border-color: var(--accent2); }
-    .detector-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-    .det-header { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-family: var(--mono); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background 0.3s; }
-    .status-dot.live { background: var(--accent); }
-    .det-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-    .det-stat { background: var(--surface2); border-radius: 6px; padding: 12px; text-align: center; }
-    .det-label { font-size: 10px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
-    .det-value { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--text); }
-    .det-value.bpm-val { color: var(--accent); } .det-value.key-val { color: var(--accent2); }
-    .detecting-bar { height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; margin-top: 14px; width: 0%; transition: width 0.25s ease; }
-    .upload-section { background: var(--surface); border: 1px dashed var(--border2); border-radius: 10px; padding: 22px; text-align: center; margin-bottom: 16px; }
-    .upload-section p { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
-    .upload-btn-wrap { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+
+    /* ── BPM / KEY DETECTOR CARDS ── */
+    .det-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .det-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
+    .det-card-label { display: block; font-family: var(--body); font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .det-card-value { font-family: var(--heading); font-size: 32px; font-weight: 800; color: var(--text); }
+    .det-card-value.bpm-val { color: var(--accent); }
+    .det-card-value.key-val { color: var(--accent2); }
+    .det-card-mode { font-family: var(--body); font-size: 14px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+    .det-card-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: var(--accent); opacity: 0.4; border-radius: 0 0 12px 12px; }
+    .det-card:last-child .det-card-bar { background: var(--accent2); }
+
+    /* hidden status dot + detect bar (JS sets these) */
+    .status-dot { display: none; }
+    .detecting-bar { height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; width: 0%; transition: width 0.25s ease; margin-bottom: 16px; }
+
+    /* ── UPLOAD SECTION ── */
     input[type="file"] { display: none; }
-    .upload-label { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 8px 18px; border-radius: 5px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.12s; }
-    .upload-label:hover { border-color: var(--accent); color: var(--accent); }
-    .history-header { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-family: var(--mono); margin-bottom: 10px; }
+
+    /* ── HISTORY ── */
+    .history-header { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-family: var(--body); font-weight: 600; margin-bottom: 10px; }
     .history-list { display: flex; flex-direction: column; gap: 6px; }
-    .history-item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; cursor: pointer; font-size: 12px; }
+    .history-item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; cursor: pointer; font-size: 13px; transition: border-color 0.15s; }
     .history-item:hover { border-color: var(--border2); }
-    .hi-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
-    .hi-badge { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; }
-    .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(10,10,10,0.3); border-top-color: #0a0a0a; border-radius: 50%; animation: spin 0.65s linear infinite; vertical-align: middle; }
+    .hi-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); font-weight: 500; }
+    .hi-badge { font-family: var(--body); font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+    /* ── BOTTOM SEARCH ── */
+    .bottom-search { margin-top: 28px; margin-bottom: 12px; }
+    .bottom-search input { width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 12px 22px; border-radius: 50px; font-family: var(--body); font-size: 14px; outline: none; }
+    .bottom-search input::placeholder { color: var(--muted); }
+    .bottom-search input:focus { border-color: var(--accent); }
+
+    /* ── SPINNER ── */
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(26,26,26,0.3); border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.65s linear infinite; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(70px); background: var(--surface2); border: 1px solid var(--accent); color: var(--accent); padding: 9px 20px; border-radius: 6px; font-family: var(--mono); font-size: 12px; transition: transform 0.22s; z-index: 1000; pointer-events: none; }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(70px); background: var(--surface2); border: 1px solid var(--accent); color: var(--accent); padding: 10px 22px; border-radius: 50px; font-family: var(--body); font-size: 13px; font-weight: 500; transition: transform 0.22s; z-index: 1000; pointer-events: none; box-shadow: var(--glow); }
     .toast.show { transform: translateX(-50%) translateY(0); }
-    .footer-sig { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .sig-line { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.18); letter-spacing: 0.06em; }
-    .sig-name { font-family: var(--mono); font-size: 13px; font-weight: 700; color: rgba(200,241,53,0.45); letter-spacing: 0.06em; }
+
+    /* ── FOOTER ── */
+    .footer-sig { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .sig-line { font-family: var(--body); font-size: 11px; color: rgba(255,255,255,0.18); letter-spacing: 0.06em; }
+    .sig-name { font-family: var(--heading); font-size: 14px; font-weight: 700; color: rgba(200,241,53,0.45); letter-spacing: 0.06em; }
     .sig-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.15); }
   </style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q5B58GKBKY"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-Q5B58GKBKY');
+  </script>
 </head>
 <body>
-<div class="app">
-  <div class="header">
-    <div class="logo">CRATEDIG</div>
-    <div class="tagline">// random sample discovery + key/bpm detection</div>
+
+<!-- ── TOP NAVIGATION ── -->
+<nav class="top-nav">
+  <button class="nav-pill" onclick="document.getElementById('digBtn').click()">Discover</button>
+  <div class="nav-search"><input type="text" placeholder="Search samples..." /></div>
+  <div class="nav-right">
+    <label class="nav-pill" for="audioFile" style="cursor:pointer">Upload</label>
+    <button class="nav-pill" onclick="document.getElementById('copyBtn').click()">Save</button>
   </div>
-  <div class="filters">
-    <div class="filter-group">
-      <label>Genre</label>
-      <select id="genreSelect">
+</nav>
+
+<div class="app">
+  <div class="main-grid">
+
+    <!-- ── LEFT COLUMN ── -->
+    <div class="col-left">
+      <h1 class="hero-title">Music samples<br>discovery</h1>
+      <p class="hero-sub">Dig random vinyl rips, rare grooves, and hidden gems by genre. Detect BPM and key instantly. Built for producers and beat makers.</p>
+      <button class="dig-btn" id="digBtn">DIG CRATE</button>
+
+      <!-- Genre Pills -->
+      <div class="genre-pills" id="genrePills">
+        <button class="genre-pill active" data-value="soul_jazz">Soul/Jazz</button>
+        <button class="genre-pill" data-value="boom_bap">Hip-Hop</button>
+        <button class="genre-pill" data-value="funk_break">Funk</button>
+        <button class="genre-pill" data-value="lofi">Lo-Fi</button>
+        <button class="genre-pill" data-value="afrobeat">Afrobeat</button>
+        <button class="genre-pill" data-value="latin">Latin</button>
+        <button class="genre-pill" data-value="electronic">Electronic</button>
+        <button class="genre-pill" data-value="gospel">Gospel</button>
+        <button class="genre-pill" data-value="psych">Psych</button>
+        <button class="genre-pill" data-value="reggae">Reggae</button>
+        <button class="genre-pill" data-value="blues">Blues</button>
+        <button class="genre-pill" data-value="classical">Classical</button>
+      </div>
+
+      <!-- Hidden genre select for JS compatibility -->
+      <select id="genreSelect" class="hidden-select">
         <option value="soul_jazz">Soul / Jazz</option>
         <option value="boom_bap">Boom Bap</option>
         <option value="funk_break">Funk / Break</option>
@@ -99,73 +207,86 @@
         <option value="blues">Blues</option>
         <option value="classical">Classical</option>
       </select>
-    </div>
-    <div class="filter-group">
-      <label>Era</label>
-      <select id="eraSelect">
-        <option value="">Any Era</option>
-        <option value="1960s">60s</option>
-        <option value="1970s">70s</option>
-        <option value="1980s">80s</option>
-        <option value="1990s">90s</option>
-        <option value="2000s">2000s</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Mood</label>
-      <select id="moodSelect">
-        <option value="">Any Mood</option>
-        <option value="melancholy">Melancholy</option>
-        <option value="upbeat">Upbeat</option>
-        <option value="dark">Dark / Moody</option>
-        <option value="smooth">Smooth</option>
-        <option value="aggressive">Aggressive</option>
-        <option value="dreamy">Dreamy</option>
-      </select>
-    </div>
-    <button class="dig-btn" id="digBtn">DIG CRATE</button>
-  </div>
-  <div class="player-card">
-    <div class="video-wrap" id="videoWrap">
-      <div class="placeholder">
-        <div class="placeholder-icon">&#9654;</div>
-        <span style="font-size:12px;font-family:var(--mono)">hit dig crate to find a sample</span>
+
+      <!-- Era & Mood -->
+      <div class="filter-row">
+        <select id="eraSelect">
+          <option value="">Any Era</option>
+          <option value="1960s">60s</option>
+          <option value="1970s">70s</option>
+          <option value="1980s">80s</option>
+          <option value="1990s">90s</option>
+          <option value="2000s">2000s</option>
+        </select>
+        <select id="moodSelect">
+          <option value="">Any Mood</option>
+          <option value="melancholy">Melancholy</option>
+          <option value="upbeat">Upbeat</option>
+          <option value="dark">Dark / Moody</option>
+          <option value="smooth">Smooth</option>
+          <option value="aggressive">Aggressive</option>
+          <option value="dreamy">Dreamy</option>
+        </select>
       </div>
+
+      <!-- Waveform Visualizer -->
+      <div class="waveform" id="waveform"></div>
     </div>
-    <div class="meta-row" id="metaRow" style="display:none">
-      <div class="track-title" id="trackTitle">-</div>
-      <div class="badges" id="badgeRow"></div>
-    </div>
-    <div class="action-row" id="actionRow" style="display:none">
-      <button class="act-btn" id="copyBtn">copy link</button>
-      <button class="act-btn" id="nextBtn">next sample</button>
-      <button class="act-btn" id="ytBtn">open on youtube</button>
-    </div>
-  </div>
-  <div class="detector-card">
-    <div class="det-header">
+
+    <!-- ── RIGHT COLUMN ── -->
+    <div class="col-right">
+      <div class="player-card">
+        <div class="video-wrap" id="videoWrap">
+          <div class="placeholder">
+            <div class="placeholder-icon">&#9654;</div>
+            <span style="font-size:13px;font-family:var(--body);font-weight:500">hit dig crate to find a sample</span>
+          </div>
+        </div>
+        <div class="meta-row" id="metaRow" style="display:none">
+          <div class="track-title" id="trackTitle">-</div>
+          <div class="badges" id="badgeRow"></div>
+        </div>
+        <div class="action-row" id="actionRow" style="display:none">
+          <button class="act-btn" id="copyBtn">copy link</button>
+          <button class="act-btn" id="nextBtn">next sample</button>
+          <button class="act-btn" id="ytBtn">open on youtube</button>
+        </div>
+      </div>
+
+      <!-- BPM / Key Cards -->
+      <div class="det-cards">
+        <div class="det-card">
+          <span class="det-card-label">BPM</span>
+          <span class="det-card-value bpm-val" id="bpmVal">-</span>
+          <div class="det-card-bar"></div>
+        </div>
+        <div class="det-card">
+          <span class="det-card-label">KEY</span>
+          <span class="det-card-value key-val" id="keyVal">-</span>
+          <span class="det-card-mode" id="modeVal">-</span>
+          <div class="det-card-bar"></div>
+        </div>
+      </div>
       <span class="status-dot" id="statusDot"></span>
-      bpm + key detector
-    </div>
-    <div class="det-grid">
-      <div class="det-stat"><div class="det-label">BPM</div><div class="det-value bpm-val" id="bpmVal">-</div></div>
-      <div class="det-stat"><div class="det-label">Key</div><div class="det-value key-val" id="keyVal">-</div></div>
-      <div class="det-stat"><div class="det-label">Mode</div><div class="det-value" id="modeVal" style="font-size:18px;padding-top:3px">-</div></div>
-    </div>
-    <div class="detecting-bar" id="detectBar"></div>
-  </div>
-  <div class="upload-section">
-    <p>Upload your own audio to detect its key + BPM</p>
-    <div class="upload-btn-wrap">
-      <label class="upload-label" for="audioFile">upload audio</label>
-      <input type="file" id="audioFile" accept="audio/*" />
-      <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">mp3 · wav · ogg</span>
+      <div class="detecting-bar" id="detectBar"></div>
     </div>
   </div>
-  <div id="historySection" style="display:none;margin-top:16px">
+
+  <!-- Upload (hidden file input) -->
+  <input type="file" id="audioFile" accept="audio/*" />
+
+  <!-- History -->
+  <div id="historySection" style="display:none;margin-top:24px">
     <div class="history-header">recent digs</div>
     <div class="history-list" id="historyList"></div>
   </div>
+
+  <!-- Bottom Search -->
+  <div class="bottom-search">
+    <input type="text" placeholder="Search..." />
+  </div>
+
+  <!-- Footer -->
   <div class="footer-sig">
     <span class="sig-line">crafted by</span>
     <span class="sig-dot"></span>
@@ -174,7 +295,9 @@
     <span class="sig-line">cratedig.site</span>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
+
 <script>
 var YT_API_KEY = 'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0';
 
@@ -686,7 +809,7 @@ var VIDEO_CACHE = {
     'l5TaFHB5p3E', // Ivan Lins - Velas (1984)
     '0cEFqQ7ZGWc', // Milton Nascimento - Travessia (1967)
     'VJHFl11CGNY', // Gilberto Gil - Aquele Abraco (1969)
-    'IRuPm0yqxFk', // Caetano Veloso - Alegria Alegria (1967)
+    'IRuPm0oJBpY', // Caetano Veloso - Alegria Alegria (1967)
     '_BXRWI8DCJI', // Os Mutantes - A Minha Menina (1968)
     'rnnhsLkLaGE', // Tim Maia - Azul Da Cor Do Mar (1970)
     '7WyaX6bHiAg', // Jorge Ben - Taj Mahal (1972)
@@ -1260,6 +1383,48 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('nextBtn').addEventListener('click',digNewSample);
   document.getElementById('ytBtn').addEventListener('click',openYouTube);
   document.getElementById('audioFile').addEventListener('change',function(){analyzeUpload(this);});
+});
+</script>
+
+<!-- ── UI ENHANCEMENT SCRIPT (genre pills + waveform) ── -->
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  // Genre pill click → update hidden select
+  var pills = document.querySelectorAll('.genre-pill');
+  var genreSelect = document.getElementById('genreSelect');
+  pills.forEach(function(pill){
+    pill.addEventListener('click', function(){
+      pills.forEach(function(p){ p.classList.remove('active'); });
+      this.classList.add('active');
+      genreSelect.value = this.getAttribute('data-value');
+    });
+  });
+
+  // Build waveform bars
+  var waveform = document.getElementById('waveform');
+  var barCount = 45;
+  for(var i = 0; i < barCount; i++){
+    var bar = document.createElement('div');
+    bar.className = 'bar';
+    var hMin = 4 + Math.random() * 10;
+    var hMax = 20 + Math.random() * 40;
+    bar.style.setProperty('--h-min', hMin + 'px');
+    bar.style.setProperty('--h-max', hMax + 'px');
+    bar.style.setProperty('--dur', (0.4 + Math.random() * 0.8).toFixed(2) + 's');
+    bar.style.height = hMin + 'px';
+    waveform.appendChild(bar);
+  }
+
+  // Watch for video playing → activate waveform
+  var observer = new MutationObserver(function(){
+    var hasIframe = document.querySelector('#videoWrap iframe');
+    if(hasIframe){
+      waveform.classList.add('active');
+    } else {
+      waveform.classList.remove('active');
+    }
+  });
+  observer.observe(document.getElementById('videoWrap'), { childList: true, subtree: true });
 });
 </script>
 </body>
