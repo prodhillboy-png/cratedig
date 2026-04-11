@@ -299,7 +299,14 @@
 <div class="toast" id="toast"></div>
 
 <script>
-var YT_API_KEY = 'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0';
+var API_KEYS=[
+  'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0',
+  'AIzaSyBjrzVdK4lFMmbgrDeeDkoLmU7SvWgrYyY',
+  'AIzaSyCDBRrWlpZFc9gdKuEunuqm7UG0qm3vcGM'
+];
+var currentKeyIndex=0;
+function getApiKey(){return API_KEYS[currentKeyIndex];}
+function rotateKey(){currentKeyIndex=(currentKeyIndex+1)%API_KEYS.length;}
 
 // ─────────────────────────────────────────────────────────────
 // SEARCH STRATEGY
@@ -573,454 +580,149 @@ var KEYS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 var VIDEO_CACHE = {
 
   soul_jazz: [
-    'tMVBJp4GJb8', // Roy Ayers - Everybody Loves The Sunshine (1976)
-    'ZAw5VvOF7MQ', // Ahmad Jamal - Swahililand (1974)
-    'rE6yjmQJGBM', // Cymande - Bra (1972)
-    'yq5rBD_P3Ps', // Idris Muhammad - Could Heaven Ever Be Like This (1977)
-    'zGXUbYNNGGA', // Donald Byrd - Wind Parade (1975)
-    'gdzrNAFkRKs', // Gil Scott-Heron - The Bottle (1974)
-    'Lh9QdJpFiic', // Mulatu Astatke - Yekermo Sew (1972)
-    'KwIe8Y6AEA8', // Leon Thomas - The Creator Has A Master Plan (1969)
-    '7FPgTB2MNPU', // Minnie Riperton - Les Fleur (1970)
-    '9_9AD9bc4IY', // Bobby Hutcherson - Montara (1975)
-    'XHbFzlCBbfs', // Grover Washington Jr - Mr Magic (1975)
-    'fVZFDoAbGh4', // Bob James - Take Me To The Mardi Gras (1975)
-    'bG_skZzZG0Y', // Bill Withers - Use Me (1972)
-    'KpeFHRCbfSs', // Lonnie Liston Smith - Expansions (1975)
-    'UwLjTBqBMaA', // Bobbi Humphrey - Blacks and Blues (1974)
-    'oMSIBRgKYyE', // Lou Donaldson - Pot Luck (1966)
-    'VFHhEaP3rKQ', // Alphonse Mouzon - The Funky Snakefoot (1975)
-    'r5yNKbMVGcU', // Horace Silver - Song For My Father (1964)
-    'LTM_OOhqEbI', // Lee Morgan - The Sidewinder (1964)
-    'PXnC03DqdGQ', // Hank Mobley - This I Dig Of You (1960)
-    '3Z4Sm5EM3qY', // Grant Green - Sookie Sookie (1965)
-    'kd3YBMGkJtQ', // Wes Montgomery - Bumpin On Sunset (1966)
-    'J1fqZH9-FZs', // Jimmy Smith - The Sermon (1958)
-    'h73GEZdGmzM', // Ramsey Lewis - The In Crowd (1965)
-    'bO7WxfDqH04', // Herbie Hancock - Watermelon Man (1962)
-    'CIcX7BXCTME', // McCoy Tyner - Sama Layuca (1972)
-    'M56BRFn_QnE', // Pharoah Sanders - The Creator Has A Master Plan (1969)
-    'Gs069dndIYk', // Nina Simone - Feeling Good (1965)
-    'IK-Y_7NQSQM', // Curtis Mayfield - Move On Up (1970)
-    'lwYQHJ3OSEM', // Marvin Gaye - Inner City Blues (1971)
-    'Tb4niMPBFGQ', // Al Green - Tired of Being Alone (1971)
-    'W0p7Gb4aJ1c', // Donny Hathaway - The Ghetto (1970)
-    'kgLN6jhIKhg', // Idris Muhammad - Loran's Dance (1977)
-    'bfFHLbNFaok', // Grover Washington Jr - Reed Seed (1978)
-    'MmBhHRCHAkw', // George Benson - Breezin (1976)
-    'z64DxQucLl8', // Bob James - Angela (1978)
-    'JEBhNgGFPQA', // Gary Bartz - Music Is My Sanctuary (1977)
-    'oEWPOPZfaW0', // Bobbi Humphrey - Harlem River Drive (1974)
-    'aXXkGlyWfA4', // Lonnie Liston Smith - Make Someone Happy (1975)
-    'KlkTQxV0VmM', // Donald Byrd - Lansana's Priestess (1973)
-    'FBM-kxbDXfE', // Lonnie Liston Smith - A Garden Of Peace (1974)
-    'bq9qe33HHVQ', // Roy Ayers - Mystic Voyage (1975)
-    '7wxT14JFgAo', // Grover Washington Jr - Mister Magic (1975)
-    'dRb_ILgxpiM', // Headhunters - God Make Me Funky (1975)
-    'I26jNHOmLiI'  // Weldon Irvine - We Getting Down (1974)
+    'tMVBJp4GJb8','fVZFDoAbGh4','XHbFzlCBbfs','yq5rBD_P3Ps',
+    'zGXUbYNNGGA','gdzrNAFkRKs','Lh9QdJpFiic','KwIe8Y6AEA8',
+    '7FPgTB2MNPU','bG_skZzZG0Y','9_9AD9bc4IY','Hm2NG9-pqbQ',
+    'sM4p_WsQ1Sc','eFjjO_lhf38','vhj3NvmB_dA','AoKaV4QTRRY',
+    'kT2T7ZQDDUA','1kbOvWlFzR4','ot7GKvKPPbY','xHFkp7XCKGA',
+    'NRDbMBBuFXM','AQPLCm5BKDE','5kHO0LVlZcI','ULKB2A9x-kQ',
+    'I96Up7Yv0Zk','e6aFMFMFHnk','wLdlw8KGSMA','dGnG1V3BVWQ',
+    'PXwmH5Kpwt0','4O0caBF97AM','T0IFBrRkv3Y','yQjBRSzGEEk',
+    'K7XTdlqDgaA','0CPMJ9MHNqY','jMpj1-k8oxQ','nF62S-O78MY',
+    'pBjEVBpEQCg','oU4DTCQSCCA','5Hf2o9Qg8Ck','hB8j2vXn2mA',
+    'Mx-KTxT-7iE','XNs4H_gZ0yY','k8NG3MjEBYk','PzMUGV7OISM',
+    'GMsUE2wFbrk'
   ],
 
   funk_break: [
-    'sM4p_WsQ1Sc', // James Brown - Funky Drummer (1970)
-    'QaZHbxFxTt0', // James Brown - Give It Up Or Turnit A Loose (1969)
-    'Kc5zxBRFIvg', // Fred Wesley - House Party (1973)
-    'pFpUlCFiFgY', // Maceo Parker - Shake Everything You Got (1974)
-    'H1GkzXXmuvM', // The JBs - Pass The Peas (1972)
-    'FkZOcMBKxwU', // Meters - Cissy Strut (1969)
-    'lp6RgGZFjx0', // Meters - Look-Ka Py Py (1969)
-    'l8RSGKE8Rn0', // Kool and the Gang - Jungle Boogie (1973)
-    'Lc2SKSCxP5k', // Bar-Kays - Soul Finger (1967)
-    'Xqog63KOANc', // Bar-Kays - Too Hot To Stop (1976)
-    'tCJAQRogRP8', // Ohio Players - Funky Worm (1973)
-    'hDJZRVTsRSs', // Ohio Players - Fire (1974)
-    '0YoFTBpvLk4', // Tower of Power - What Is Hip (1973)
-    'EBBdPy3YK7E', // Average White Band - Pick Up The Pieces (1974)
-    'GGg6UMFpSAA', // Brass Construction - Movin (1976)
-    'n8J7UFWWN9Q', // Dyke and the Blazers - Funky Broadway (1967)
-    '5JEGfSG6TH4', // Mandrill - Fencewalk (1973)
-    'LHOKiN9qUkc', // Sly and the Family Stone - Sing A Simple Song (1968)
-    'uyGY46rHVJ0', // Bootsy Collins - Stretchin Out (1976)
-    'lBDR-GJK_Mk', // Parliament - Give Up The Funk (1976)
-    'iy_A5MHVVWM', // Funkadelic - One Nation Under A Groove (1978)
-    'c_5OZtMpRog', // Dazz Band - Let It Whip (1982)
-    '_LHTArI_cvw', // Zapp - More Bounce To The Ounce (1980)
-    'M_nxIvEPx3s', // Con Funk Shun - Ffun (1977)
-    'wfmvzUC49p8', // Cameo - Word Up (1986)
-    'WZ2OzMRCMgs', // Gap Band - You Dropped A Bomb On Me (1982)
-    'wKyMIyNuSgk', // Lakeside - Fantastic Voyage (1980)
-    'BMBM_WL_4bY', // Bloodstone - Natural High (1973)
-    'vRvEgcFkHqI', // Dramatics - Whatcha See Is Whatcha Get (1971)
-    'X_QIgEhKVaQ', // MFSB - Love Is The Message (1973)
-    'Np5HJpQjnHc', // Lenny Williams - Cause I Love You (1978)
-    'aatVzQJVLuA', // Patrice Rushen - Forget Me Nots (1982)
-    'TlPPHBPPLB4', // Mtume - Juicy Fruit (1983)
-    'EQ8Pzz0RPXQ', // Maze featuring Frankie Beverly - Before I Let Go (1981)
-    'HKsCPdXgMdc', // Atlantic Starr - Send For Me (1981)
-    'D7s-OTfp7yQ', // Whispers - And The Beat Goes On (1979)
-    'hcCBFMUK58k', // Fatback Band - Wicky Wacky (1974)
-    'GCLfstEqMY8', // Slave - Slide (1977)
-    'cJtL8vWNZ4o', // Enchantment - It's You That I Need (1977)
-    'QGxSHFXMFhA', // Chi-Lites - Have You Seen Her (1971)
-    'GXmqmG7pFa4', // First Choice - Armed And Extremely Dangerous (1973)
-    'JeRJpGNeYQI', // Shalamar - A Night To Remember (1982)
-    'Qs5QG5Cv4Ww', // Frankie Beverly - Running Away (1977)
-    'vhj3NvmB_dA', // Jimmy Castor Bunch - It's Just Begun (1972)
-    'eFjjO_lhf38'  // Bob James - Nautilus (1974)
+    'sM4p_WsQ1Sc','QaZHbxFxTt0','H1GkzXXmuvM','lp6RgGZFjx0',
+    'l8RSGKE8Rn0','Lc2SKSCxP5k','Xqog63KOANc','tCJAQRogRP8',
+    'hDJZRVTsRSs','0YoFTBpvLk4','EBBdPy3YK7E','GGg6UMFpSAA',
+    'n8J7UFWWN9Q','5JEGfSG6TH4','LHOKiN9qUkc','uyGY46rHVJ0',
+    'lBDR-GJK_Mk','iy_A5MHVVWM','c_5OZtMpRog','_LHTArI_cvw',
+    'M_nxIvEPx3s','wfmvzUC49p8','WZ2OzMRCMgs','wKyMIyNuSgk',
+    'BMBM_WL_4bY','vRvEgcFkHqI','X_QIgEhKVaQ','Np5HJpQjnHc',
+    'aatVzQJVLuA','TlPPHBPPLB4','EQ8Pzz0RPXQ','HKsCPdXgMdc',
+    'D7s-OTfp7yQ','hcCBFMUK58k','GCLfstEqMY8','cJtL8vWNZ4o',
+    'QGxSHFXMFhA','GXmqmG7pFa4','JeRJpGNeYQI','Qs5QG5Cv4Ww',
+    'vhj3NvmB_dA','eFjjO_lhf38','1kbOvWlFzR4','ot7GKvKPPbY',
+    'NRDbMBBuFXM'
   ],
 
   boom_bap: [
-    '1kbOvWlFzR4', // Melvin Bliss - Synthetic Substitution (1973)
-    'ot7GKvKPPbY', // Lyn Collins - Think About It (1972)
-    'xHFkp7XCKGA', // Bobby Byrd - I Know You Got Soul (1971)
-    'NRDbMBBuFXM', // Skull Snaps - It's A New Day (1973)
-    'AQPLCm5BKDE', // The Winstons - Amen Brother (1969)
-    '5kHO0LVlZcI', // Babe Ruth - The Mexican (1972)
-    'eFjjO_lhf38', // Bob James - Nautilus (1974)
-    'AoKaV4QTRRY', // Syl Johnson - Different Strokes (1967)
-    'kT2T7ZQDDUA', // Shuggie Otis - Strawberry Letter 23 (1971)
-    'ULKB2A9x-kQ', // Marva Whitney - Unwind Yourself (1968)
-    'I96Up7Yv0Zk', // People's Choice - Do It Anyway You Wanna (1975)
-    'e6aFMFMFHnk', // Eddie Bo - Hook And Sling (1969)
-    'wLdlw8KGSMA', // Baby Huey - Hard Times (1971)
-    'dGnG1V3BVWQ', // 20th Century Steel Band - Heaven And Hell (1971)
-    'PXwmH5Kpwt0', // Kool And The Gang - N.T. (1969)
-    'dRb_ILgxpiM', // Headhunters - God Make Me Funky (1975)
-    'bq9qe33HHVQ', // Roy Ayers - Mystic Voyage (1975)
-    'I26jNHOmLiI', // Weldon Irvine - We Getting Down (1974)
-    '4O0caBF97AM', // Eddie Harris - Listen Here (1968)
-    'OtRfCfCGYYY', // Ahmad Jamal - Patterns (1980)
-    'T0IFBrRkv3Y', // Freddie Hubbard - Red Clay (1970)
-    'yQjBRSzGEEk', // Lee Morgan - Ceora (1965)
-    'K7XTdlqDgaA', // Jimmy Smith - Back At The Chicken Shack (1960)
-    '0CPMJ9MHNqY', // Grant Green - Idle Moments (1963)
-    'jMpj1-k8oxQ', // Hank Mobley - No Room For Squares (1963)
-    'nF62S-O78MY', // Lou Donaldson - Alligator Boogaloo (1967)
-    'KlkTQxV0VmM', // Donald Byrd - Lansana's Priestess (1973)
-    'aXXkGlyWfA4', // Lonnie Liston Smith - Make Someone Happy (1975)
-    'oEWPOPZfaW0', // Bobbi Humphrey - Harlem River Drive (1974)
-    'JEBhNgGFPQA', // Gary Bartz - Music Is My Sanctuary (1977)
-    'kgLN6jhIKhg', // Idris Muhammad - Loran's Dance (1977)
-    'bfFHLbNFaok', // Grover Washington Jr - Reed Seed (1978)
-    'MmBhHRCHAkw', // George Benson - Breezin (1976)
-    'z64DxQucLl8', // Bob James - Angela (1978)
-    'Zz-kNAEJfhA', // Alphonse Mouzon - The Funky Snakefoot II
-    'hB8j2vXn2mA', // Mongo Santamaria - Watermelon Man (1963)
-    'FBM-kxbDXfE', // Lonnie Liston Smith - A Garden Of Peace (1974)
-    '3i5BpEjFBAA', // McCoy Tyner - La Habana Sol (1981)
-    'v_4J-cMVFH8', // Wes Montgomery - Road Song (1968)
-    'Hzy7VCvF8sM', // Jack McDuff - Ain't It So (1966)
-    'pBjEVBpEQCg', // Weldon Irvine - Morning Sunrise (1971)
-    'oU4DTCQSCCA', // Freddie Roach - Mo Greens Please (1963)
-    '5Hf2o9Qg8Ck', // Jack McDuff - Rock Candy (1965)
-    'mEEkUe-Rlno', // Carmen McRae - deep soul
-    'N3y59Qv0XAE'  // Elis Regina - Madalena (1968)
+    '1kbOvWlFzR4','ot7GKvKPPbY','xHFkp7XCKGA','NRDbMBBuFXM',
+    'AQPLCm5BKDE','5kHO0LVlZcI','eFjjO_lhf38','AoKaV4QTRRY',
+    'kT2T7ZQDDUA','ULKB2A9x-kQ','I96Up7Yv0Zk','e6aFMFMFHnk',
+    'wLdlw8KGSMA','dGnG1V3BVWQ','PXwmH5Kpwt0','dRb_ILgxpiM',
+    'bq9qe33HHVQ','I26jNHOmLiI','4O0caBF97AM','OtRfCfCGYYY',
+    'T0IFBrRkv3Y','yQjBRSzGEEk','K7XTdlqDgaA','0CPMJ9MHNqY',
+    'jMpj1-k8oxQ','nF62S-O78MY','KlkTQxV0VmM','aXXkGlyWfA4',
+    'oEWPOPZfaW0','JEBhNgGFPQA','kgLN6jhIKhg','bfFHLbNFaok',
+    'MmBhHRCHAkw','z64DxQucLl8','FBM-kxbDXfE','3i5BpEjFBAA',
+    'v_4J-cMVFH8','pBjEVBpEQCg','oU4DTCQSCCA','5Hf2o9Qg8Ck',
+    'hB8j2vXn2mA','Mx-KTxT-7iE','XNs4H_gZ0yY','k8NG3MjEBYk',
+    'GMsUE2wFbrk'
   ],
 
   lofi: [
-    'cWJdP6STSHE', // Chet Baker - Almost Blue (1965)
-    'q7SsHjpGBH8', // Bill Evans - Waltz For Debby (1961)
-    'xqCpZ_UFhX4', // Miles Davis - Blue In Green (1959)
-    'EEjN4HImOIs', // John Coltrane - Naima (1959)
-    'CdJLpxBFUzY', // Thelonious Monk - Round Midnight (1957)
-    'ysP_ZHyBJV8', // Dave Brubeck - Take Five (1959)
-    'cXVFaqIJfPs', // Paul Desmond - East Of The Sun (1965)
-    'Y3JfnqFQUBs', // Art Tatum - Tea For Two (1949)
-    'zLKRaZmjAoQ', // Oscar Peterson - Night Train (1962)
-    'j0lEMjBBVOE', // Keith Jarrett - The Koln Concert (1975)
-    'uO7kogKknTc', // Chick Corea - Spain (1972)
-    'Q_ViN_LNIOM', // Herbie Hancock - Maiden Voyage (1965)
-    'J8FT5qvS7NU', // Wayne Shorter - Infant Eyes (1964)
-    'yU4hb30a9Pc', // Freddie Hubbard - Little Sunflower (1966)
-    'HHDI8a-3LCU', // Lee Morgan - Speedball (1956)
-    'zy6kBfCxLqc', // Horace Silver - Strollin (1958)
-    'v-j9u3KKUSM', // Cannonball Adderley - Mercy Mercy Mercy (1966)
-    'UVYuXI-cj_o', // Stanley Turrentine - Sugar (1970)
-    'lqFmqUqRDfE', // Dexter Gordon - Cheese Cake (1964)
-    'vGmtIM6U5K4', // Sonny Rollins - St Thomas (1956)
-    'EfxACuFfj1M', // John Coltrane - My Favorite Things (1961)
-    'JMQZG6KTEEY', // Miles Davis - Flamenco Sketches (1959)
-    'WEwqeY6ygI4', // Bill Evans - Peace Piece (1958)
-    'HxkSRAqSBmc', // Barney Wilen - The Trot (1959)
-    'T7b7BHClcVc', // Django Reinhardt - Nuages (1940)
-    'l6IbrSaAlnw', // Sarah Vaughan - Whatever Lola Wants (1955)
-    'ql0OE-3cBGs', // Billie Holiday - Strange Fruit (1939)
-    'fZOvYKhJBdU', // Ella Fitzgerald - Summertime (1968)
-    'QBkC4C_7q4E', // Sarah Vaughan - Misty (1959)
-    'WL9HHTH7IMw', // Carmen McRae - Yesterdays (1967)
-    'nGiVijV1QDA', // Abbey Lincoln - Retribution (1961)
-    'Lp9rZ4OtFpY', // Shirley Horn - Here's To Life (1992)
-    'u4WqXJxfL_s', // Dakota Staton - The Late Late Show (1958)
-    '54Z2fRxRZPE', // June Christy - Something Cool (1954)
-    'qH__RiReKn8', // Astrud Gilberto - Corcovado (1964)
-    'dNqHBjjYBLQ', // Joao Gilberto - Garota De Ipanema (1963)
-    'UJkxUvALGnQ', // Stan Getz - The Girl From Ipanema (1964)
-    'ByHjVaJo13I', // Sergio Mendes - Mas Que Nada (1966)
-    'hOnBVaFgXb8', // Cal Tjader - Soul Sauce (1965)
-    'qH__RiReKn8'  // Astrud Gilberto - Corcovado reprise
+    'xqCpZ_UFhX4','CIcX7BXCTME','M56BRFn_QnE','Gs069dndIYk',
+    'lwYQHJ3OSEM','W0p7Gb4aJ1c','kgLN6jhIKhg','bfFHLbNFaok',
+    'MmBhHRCHAkw','z64DxQucLl8','JEBhNgGFPQA','oEWPOPZfaW0',
+    'aXXkGlyWfA4','KlkTQxV0VmM','FBM-kxbDXfE','bq9qe33HHVQ',
+    'I26jNHOmLiI','dRb_ILgxpiM','4O0caBF97AM','OtRfCfCGYYY',
+    'T0IFBrRkv3Y','yQjBRSzGEEk','K7XTdlqDgaA','0CPMJ9MHNqY',
+    'jMpj1-k8oxQ','nF62S-O78MY','v_4J-cMVFH8','pBjEVBpEQCg',
+    'oU4DTCQSCCA','5Hf2o9Qg8Ck','hB8j2vXn2mA','Mx-KTxT-7iE',
+    'XNs4H_gZ0yY','k8NG3MjEBYk','PzMUGV7OISM','GMsUE2wFbrk',
+    'Ij7S0LsLY04','OLBknBCCgv4','WsMOK9aBQHw','mI5TyNDMEAE'
   ],
 
   afrobeat: [
-    'FoagFk7YZJM', // Fela Kuti - Zombie (1976)
-    '0QXKV04JSYM', // Fela Kuti - Water No Get Enemy (1975)
-    'Cy0JkHCchEA', // Tony Allen - No Accommodation For Lagos (1979)
-    'jqDY2FWWajA', // Hugh Masekela - Grazing In The Grass (1968)
-    'TIHv5ZTCJGU', // Hugh Masekela - Stimela (1974)
-    'RtqYGmk7FW4', // Miriam Makeba - Pata Pata (1967)
-    'hOnBVaFgXb8', // William Onyeabor - Atomic Bomb (1978)
-    'k4Vu0nR-LVo', // William Onyeabor - Good Name (1980)
-    'VBBbAU3WN9o', // Ebo Taylor - Love And Death (1980)
-    'yTqBBxTW1yM', // Ebo Taylor - Afro Soul Dada (1980)
-    'IG9PW4oyvGo', // Manu Dibango - Soul Makossa (1972)
-    'S7cgjAoGSrk', // Orchestre Baobab - Utrus Horas (1982)
-    'vS_gKoGtMLI', // Ofo The Black Company - Allah Wakbarr (1970)
-    'nHPaVGNEn9k', // Orlando Julius - Super Afro Soul (1969)
-    'BZaE85W2mLQ', // Seun Kuti - African Dreams (2008)
-    'GMsUE2wFbrk', // Mulatu Astatke - Tezeta (1975)
-    'Ij7S0LsLY04', // Mulatu Astatke - Munaye (1972)
-    'OLBknBCCgv4', // Hailu Mergia - Wede Harer Guzo (1977)
-    'Oy_LiyiHXTo', // Geraldo Pino - Soul Brother Number One (1970)
-    'L_oo6YGPWDE', // Sonny Okosun - Fire In Soweto (1978)
-    'T6GZxwJQ9JM', // Christy Essien - Give Me A Chance (1980)
-    'EWGmQk29sDU', // Sir Victor Uwaifo - Guitar Boy (1966)
-    '5lPVzMkSBHQ', // Oriental Brothers - Igodo (1977)
-    'cTW5AWPVNCA', // Sunny Ade - Synchro System (1983)
-    'LnQZsO3E-b0', // Ebenezer Obey - Board Members (1982)
-    'ZMgBGmcf6pY', // Prince Nico Mbarga - Sweet Mother (1976)
-    'pqEa5RBzLBs', // Antibalas - Indictment (2007)
-    'nSa0CrdGBzk', // Dele Sosimi - Too Much Information (2013)
-    'JBfEjhkylFY', // Peter King - Shango (1972)
-    'gH7O5XlX0Y0'  // Mary Afi Usuah - Mbre Mbre (1980)
+    'FoagFk7YZJM','0QXKV04JSYM','Cy0JkHCchEA','jqDY2FWWajA',
+    'TIHv5ZTCJGU','RtqYGmk7FW4','hOnBVaFgXb8','k4Vu0nR-LVo',
+    'VBBbAU3WN9o','yTqBBxTW1yM','IG9PW4oyvGo','S7cgjAoGSrk',
+    'vS_gKoGtMLI','nHPaVGNEn9k','BZaE85W2mLQ','GMsUE2wFbrk',
+    'Ij7S0LsLY04','OLBknBCCgv4','Oy_LiyiHXTo','L_oo6YGPWDE',
+    'T6GZxwJQ9JM','EWGmQk29sDU','5lPVzMkSBHQ','cTW5AWPVNCA',
+    'LnQZsO3E-b0','ZMgBGmcf6pY','pqEa5RBzLBs','nSa0CrdGBzk',
+    'JBfEjhkylFY','gH7O5XlX0Y0'
   ],
 
   latin: [
-    'WcRZFmfPgbo', // Eddie Palmieri - Azucar Pa Ti (1965)
-    'IFgJR5m3TZg', // Tito Puente - Oye Como Va (1963)
-    'NVVkq_Gfr9A', // Willie Colon - El Malo (1967)
-    'hfP91UMnGpE', // Celia Cruz - Quimbara (1974)
-    'Mx-KTxT-7iE', // Mongo Santamaria - Afro Blue (1959)
-    'wLd19BNXXkc', // Irakere - Bacalao Con Pan (1978)
-    'DhhW_aSHrGg', // Beny More - Bonito Y Sabroso (1958)
-    'q6GRNlVCmLM', // Arsenio Rodriguez - Fuego (1948)
-    'D0DxgGhUAAs', // Machito - Tanga (1943)
-    'ZP0rAPV_a_k', // Chico Hamilton - Forest Flower (1966)
-    'XNs4H_gZ0yY', // Airto Moreira - Return To Forever (1972)
-    'k8NG3MjEBYk', // Flora Purim - Open Your Eyes You Can Fly (1974)
-    'PzMUGV7OISM', // Hermeto Pascoal - Slaves Mass (1977)
-    'l5TaFHB5p3E', // Ivan Lins - Velas (1984)
-    '0cEFqQ7ZGWc', // Milton Nascimento - Travessia (1967)
-    'VJHFl11CGNY', // Gilberto Gil - Aquele Abraco (1969)
-    'IRuPm0oJBpY', // Caetano Veloso - Alegria Alegria (1967)
-    '_BXRWI8DCJI', // Os Mutantes - A Minha Menina (1968)
-    'rnnhsLkLaGE', // Tim Maia - Azul Da Cor Do Mar (1970)
-    '7WyaX6bHiAg', // Jorge Ben - Taj Mahal (1972)
-    'wr6Z1oMiCTk', // Jorge Ben - Charles Junior (1969)
-    'mJr42JcFbF8', // Gal Costa - Baby (1969)
-    'N3y59Qv0XAE', // Elis Regina - Madalena (1968)
-    'hB8j2vXn2mA', // Mongo Santamaria - Watermelon Man (1963)
-    'Q2bEIXpAEiY', // Tito Rodriguez - Inolvidable (1961)
-    'ByHjVaJo13I', // Sergio Mendes - Mas Que Nada (1966)
-    'qH__RiReKn8', // Astrud Gilberto - Corcovado (1964)
-    'dNqHBjjYBLQ', // Joao Gilberto - Garota De Ipanema (1963)
-    'UJkxUvALGnQ', // Stan Getz - The Girl From Ipanema (1964)
-    'hOnBVaFgXb8'  // Cal Tjader - Soul Sauce (1965)
+    'WcRZFmfPgbo','IFgJR5m3TZg','NVVkq_Gfr9A','hfP91UMnGpE',
+    'Mx-KTxT-7iE','wLd19BNXXkc','DhhW_aSHrGg','q6GRNlVCmLM',
+    'D0DxgGhUAAs','ZP0rAPV_a_k','XNs4H_gZ0yY','k8NG3MjEBYk',
+    'PzMUGV7OISM','l5TaFHB5p3E','0cEFqQ7ZGWc','VJHFl11CGNY',
+    'IRuPm0oJBpY','_BXRWI8DCJI','rnnhsLkLaGE','7WyaX6bHiAg',
+    'wr6Z1oMiCTk','mJr42JcFbF8','N3y59Qv0XAE','hB8j2vXn2mA',
+    'Q2bEIXpAEiY','ByHjVaJo13I','qH__RiReKn8','dNqHBjjYBLQ',
+    'UJkxUvALGnQ','hOnBVaFgXb8'
   ],
 
   electronic: [
-    'zhl-Cs1uZgY', // Giorgio Moroder - From Here To Eternity (1977)
-    'DXB_dPAQeXI', // Giorgio Moroder - Chase (1978)
-    'lXNF9fy9q1A', // Patrick Cowley - Menergy (1981)
-    'T7GNmkEWef0', // Arthur Russell - A Little Lost (1986)
-    'BuJdIbzxGZ4', // Arthur Russell - Is It All Over My Face (1980)
-    'o4qvAGN0LCA', // Klein and MBO - Your Love (1982)
-    'qFLhGq0060w', // Jean Michel Jarre - Oxygene IV (1976)
-    'q-MdC07C4j8', // Jean Michel Jarre - Equinoxe IV (1978)
-    'Bm5iA4Zupek', // Tangerine Dream - Rubycon (1975)
-    'jEL2QkiF0Cg', // Kraftwerk - Trans Europe Express (1977)
-    '4pSzhZ76Gug', // Kraftwerk - Numbers (1981)
-    'zYvMuJaJMXc', // Yellow Magic Orchestra - Rydeen (1979)
-    '5EkSSwVLkp0', // Ryuichi Sakamoto - Thousand Knives (1978)
-    'VkfQMqkUF5E', // Juan Atkins - 3 Faces Of Eve (1986)
-    'UXiIqbPtFiY', // Cybotron - Clear (1983)
-    '_7xFcUsPBqI', // Model 500 - No UFOs (1985)
-    'VhUFxD73rBc', // Derrick May - Strings Of Life (1987)
-    'DQbFAEHi5nA', // Kevin Saunderson - Good Life (1988)
-    'NLMJFzwrdX4', // Larry Heard - Can You Feel It (1986)
-    'PJ2sTK2RKxc', // Frankie Knuckles - Your Love (1987)
-    'mMnxoJj_sMU', // Marshall Jefferson - Move Your Body (1986)
-    'hDN_bNXEo3I', // Ten City - Thats The Way Love Is (1987)
-    'r3mN2glbYYA', // Blaze - My Beat (1990)
-    'kzBTnKJN9FE', // Masters At Work - To Be In Love (1992)
-    '28QFN7oFRSQ', // Kerri Chandler - Bar A Thym (1993)
-    'nHUEMKcnkXw', // Ron Trent - Afterlife (1993)
-    'f7z6r0ClI5c', // Moodymann - I Cant Kick This Feeling (1997)
-    'xBuWeNqBhxo', // Larry Heard - Mystery Of Love (1985)
-    '5GJ3_mSTWAo', // Patrick Cowley - Do You Wanna Funk (1982)
-    'VEQpZbhQBrc'  // Roberto Carlos - Detalhes (1971)
+    'zhl-Cs1uZgY','DXB_dPAQeXI','lXNF9fy9q1A','T7GNmkEWef0',
+    'BuJdIbzxGZ4','o4qvAGN0LCA','qFLhGq0060w','q-MdC07C4j8',
+    'Bm5iA4Zupek','jEL2QkiF0Cg','4pSzhZ76Gug','zYvMuJaJMXc',
+    '5EkSSwVLkp0','VkfQMqkUF5E','UXiIqbPtFiY','_7xFcUsPBqI',
+    'VhUFxD73rBc','DQbFAEHi5nA','NLi7F6DVS0Q','PJ2sTK2RKxc',
+    'mMnxoJj_sMU','hDN_bNXEo3I','r3mN2glbYYA','kzBTnKJN9FE',
+    '28QFN7oFRSQ','nHUEMKcnkXw','f7z6r0ClI5c','xBuWeNqBhxo',
+    '5GJ3_mSTWAo','VEQpZbhQBrc'
   ],
 
   gospel: [
-    'iTyBTiO2Xts', // Mahalia Jackson - How I Got Over (1956)
-    'JH2HF2QOZP4', // Mahalia Jackson - Move On Up A Little Higher (1947)
-    'hBjqq8BKRWA', // James Cleveland - Peace Be Still (1963)
-    '_OGvRp3VSLM', // Edwin Hawkins - Oh Happy Day (1967)
-    'FMkWqJp9FoA', // Dorothy Love Coates - Thats Enough (1956)
-    'lXDH_6EXMQU', // Mighty Clouds Of Joy - Time (1974)
-    'dnnXPLKwqmY', // Shirley Caesar - No Charge (1978)
-    'T3-BvqtHKcs', // Walter Hawkins - Goin Up Yonder (1975)
-    'v8C9lAMkIvs', // Andrae Crouch - Take Me Back (1975)
-    'bNMGpNWOntw', // Clark Sisters - You Brought The Sunshine (1981)
-    'ZyqEBkEBFlY', // Tramaine Hawkins - Changed (1978)
-    'fXjAn0DGNGE', // Richard Smallwood - Total Praise (1996)
-    'NLi7F6DVS0Q', // Kirk Franklin - Lean On Me (1997)
-    '22lWpMJGgx8', // Fred Hammond - No Weapon (2003)
-    'IcTxDimPPTs', // Smokie Norful - Nothing Without You (2002)
-    'UhMtR97a1XE', // Yolanda Adams - Open My Heart (2001)
-    'oALBMb9VcfI', // CeCe Winans - Alabaster Box (1999)
-    '3PBqlIr3ByQ', // Bebe And Cece Winans - Heaven (1988)
-    'eVrCcHjNXuc', // Take 6 - Spread Love (1988)
-    'IhVBjE3XKJ0', // Sounds Of Blackness - Optimistic (1991)
-    'SFSN4fGgJAc', // Rance Allen - Something About The Name Jesus (1972)
-    'xHSvAr9nVx8', // Mississippi Mass Choir - Near The Cross (1988)
-    'fM_oT1e3ZDM', // Soul Stirrers featuring Sam Cooke - Touch The Hem (1956)
-    'PwuPjSbEOBo', // Commissioned - King Of Kings (1985)
-    'T-5bM-JQhUg', // James Moore - I Just Want To Praise You (1983)
-    'VVF5xxJt6hQ', // Pilgrim Jubilees - Stretch Out (1971)
-    'dMr3Qm70e6Y', // Commissioned - Im Going On (1984)
-    'T7V9V-grAeI', // Tye Tribbett - Stand Out (2006)
-    '-5S6z7RqoMo', // Hezekiah Walker - Faithful Is Our God (2002)
-    'FdqVKyTpB5I'  // Donald Lawrence - Encourage Yourself (2006)
+    'iTyBTiO2Xts','JH2HF2QOZP4','hBjqq8BKRWA','_OGvRp3VSLM',
+    'FMkWqJp9FoA','lXDH_6EXMQU','dnnXPLKwqmY','T3-BvqtHKcs',
+    'v8C9lAMkIvs','bNMGpNWOntw','ZyqEBkEBFlY','fXjAn0DGNGE',
+    'NLi7F6DVS0Q','22lWpMJGgx8','IcTxDimPPTs','UhMtR97a1XE',
+    'oALBMb9VcfI','3PBqlIr3ByQ','eVrCcHjNXuc','IhVBjE3XKJ0',
+    'SFSN4fGgJAc','xHSvAr9nVx8','fM_oT1e3ZDM','PwuPjSbEOBo',
+    'T-5bM-JQhUg','VVF5xxJt6hQ','dMr3Qm70e6Y','T7V9V-grAeI',
+    '-5S6z7RqoMo','FdqVKyTpB5I'
   ],
 
   psych: [
-    'h_xyH5dVLwc', // 13th Floor Elevators - Youre Gonna Miss Me (1966)
-    'WsMOK9aBQHw', // The Seeds - Pushin Too Hard (1965)
-    'e_GlHFl3_j0', // Count Five - Psychotic Reaction (1966)
-    'lmZzMTWlxd0', // Electric Prunes - I Had Too Much To Dream (1966)
-    'SHAlW6CX0Tc', // Chocolate Watchband - Lets Talk About Girls (1967)
-    '0yKbRH5vGwE', // West Coast Pop Art - Shifting Sands (1967)
-    'mI5TyNDMEAE', // Love - Seven And Seven Is (1966)
-    'ZaHovdXq1Y0', // The Sonics - Strychnine (1965)
-    'JCkYtMMRumQ', // The Monks - Black Monk Time (1966)
-    'eM4TRnYbGBY', // Tomorrow - My White Bicycle (1967)
-    'VUEtOkqBiJA', // The Pretty Things - SF Sorrow (1968)
-    '3GYjBr3veMg', // Soft Machine - Why Am I So Short (1967)
-    '8YH1MMJQS9s', // Pink Floyd - Interstellar Overdrive (1967)
-    '-FWvR2kv4Hg', // HP Lovecraft - White Ship (1967)
-    'Qu6GDpuXUlw', // Pearls Before Swine - Another Time (1967)
-    'UrEQBjqO5h4', // Sagittarius - My World Fell Down (1967)
-    'Y_xk2FXGDMU', // The Millennium - To Claudia On Thursday (1968)
-    'N5O1BjIDqM4', // Fifty Foot Hose - Cauldron (1967)
-    'y_Q2FHVpJPQ', // Blue Cheer - Summertime Blues (1968)
-    'bP4k4KIZjHE', // Vanilla Fudge - You Keep Me Hangin On (1967)
-    'k0RTdXm4z-8', // Quicksilver Messenger Service - Gold And Silver (1969)
-    'qqObkhlkiNs', // Jefferson Airplane - White Rabbit (1967)
-    '5dZBVxnFCxo', // Moby Grape - Omaha (1967)
-    'hLR4CJxc0K0', // Steppenwolf - Magic Carpet Ride (1968)
-    'rq8lTRuioKE', // Captain Beefheart - Sure Nuff N Yes I Do (1967)
-    'EpjcfCgb2Z0', // Iron Butterfly - In-A-Gadda-Da-Vida (1968)
-    'xQvJCKo9-U0', // The Doors - The End (1967)
-    'l3nJhRiGRnc', // The United States Of America - Hard Coming Love (1968)
-    'o_cUCXfOv0I', // Curt Boettcher - Gone With The Wind (1967)
-    'mI5TyNDMEAE'  // Love - Seven And Seven Is reprise
+    'h_xyH5dVLwc','WsMOK9aBQHw','e_GlHFl3_j0','lmZzMTWlxd0',
+    'SHAlW6CX0Tc','0yKbRH5vGwE','mI5TyNDMEAE','ZaHovdXq1Y0',
+    'JCkYtMMRumQ','eM4TRnYbGBY','VUEtOkqBiJA','3GYjBr3veMg',
+    '8YH1MMJQS9s','-FWvR2kv4Hg','Qu6GDpuXUlw','UrEQBjqO5h4',
+    'Y_xk2FXGDMU','N5O1BjIDqM4','y_Q2FHVpJPQ','bP4k4KIZjHE',
+    'k0RTdXm4z-8','qqObkhlkiNs','5dZBVxnFCxo','hLR4CJxc0K0',
+    'rq8lTRuioKE','EpjcfCgb2Z0','xQvJCKo9-U0','l3nJhRiGRnc',
+    'o_cUCXfOv0I','JEBhNgGFPQA'
   ],
 
   reggae: [
-    'KSxFzSQRWZE', // King Tubby - Dub From The Roots (1974)
-    'O_DfaL-Zqrc', // Lee Scratch Perry - Roast Fish (1978)
-    'BsxFXLulSM8', // Augustus Pablo - King Tubby Meets Rockers Uptown (1976)
-    '2-HfFBJDFxc', // Burning Spear - Marcus Garvey (1975)
-    'RZfZZBGG9bQ', // Culture - Two Sevens Clash (1977)
-    'r0jKxiVsVGo', // Toots And The Maytals - Pressure Drop (1969)
-    'q1bA0GBUQ6A', // Alton Ellis - Im Still In Love (1967)
-    'cT-UoGHpNRM', // Horace Andy - Skylarking (1972)
-    'M9Ri1dqFJTs', // Jackie Mittoo - Ram Jam (1968)
-    'V3CQPGU4LrQ', // Boris Gardiner - Every Nigger Is A Star (1974)
-    'ZCfTqpXDLWs', // Joe Higgs - Theres A Reward (1975)
-    'H8BtCoJzpM8', // Justin Hinds - Carry Go Bring Come (1964)
-    'u3JpuVhfTuA', // Delroy Wilson - Better Must Come (1971)
-    'i0yYKPORFaU', // The Heptones - Book Of Rules (1973)
-    'HuZ8wjj_UzI', // Wailing Souls - Jah Give Us Life (1981)
-    'e3kB4t73_j4', // Steel Pulse - Ku Klux Klan (1978)
-    'gIHV3VbVNBQ', // Third World - Now That We Found Love (1978)
-    'D5nHQXVVBWo', // Black Uhuru - Sinsemilla (1981)
-    'vBCLJVhBr0M', // Gregory Isaacs - Night Nurse (1982)
-    'xeEE2pGpRCk', // Sugar Minott - Good Thing Going (1981)
-    'pWe0w5d-nCk', // Barrington Levy - Murderer (1979)
-    'gKZx2YLBbPs', // Eek A Mouse - Wa Do Dem (1982)
-    'v9G_MDPJR7k', // Yellowman - Zungguzungguguzungguzeng (1983)
-    'X66dAghOYoE', // Buju Banton - Murderer (1995)
-    'M9fwPp9HgFE', // Garnett Silk - Lord Watch Over Our Shoulders (1992)
-    'XtBMh7BHiUw', // Freddie McGregor - Push Come To Shove (1988)
-    'UJNPpQ3I7mo', // Sizzla - Thank You Mama (1997)
-    'XA7bxHQmHRI', // Capleton - Tour (1997)
-    'N4MhFG6Rnpw', // Dennis Alcapone - Rock To The Beat (1972)
-    'q-TRSGHcPJM'  // Luciano - Shake It Up (1995)
+    'KSxFzSQRWZE','O_DfaL-Zqrc','BsxFXLulSM8','2-HfFBJDFxc',
+    'RZfZZBGG9bQ','r0jKxiVsVGo','q1bA0GBUQ6A','cT-UoGHpNRM',
+    'M9Ri1dqFJTs','V3CQPGU4LrQ','ZCfTqpXDLWs','H8BtCoJzpM8',
+    'u3JpuVhfTuA','i0yYKPORFaU','HuZ8wjj_UzI','e3kB4t73_j4',
+    'gIHV3VbVNBQ','D5nHQXVVBWo','vBCLJVhBr0M','xeEE2pGpRCk',
+    'pWe0w5d-nCk','gKZx2YLBbPs','v9G_MDPJR7k','X66dAghOYoE',
+    'M9fwPp9HgFE','XtBMh7BHiUw','UJNPpQ3I7mo','XA7bxHQmHRI',
+    'N4MhFG6Rnpw','q-TRSGHcPJM'
   ],
 
   blues: [
-    'TXD4vLPOQ_4', // Howlin Wolf - Smokestack Lightning (1956)
-    'YDoO9EXDkfo', // Muddy Waters - Mannish Boy (1955)
-    'Wr3AVrqKr4w', // Little Walter - Juke (1952)
-    'z1KFxTNsxvA', // Sonny Boy Williamson - Help Me (1963)
-    'D_P2WEHrEuk', // Junior Wells - Messin With The Kid (1960)
-    'xeaZ8hMnlSs', // Magic Sam - All Your Love (1957)
-    'HNuikF1GRWA', // Freddie King - Hideaway (1960)
-    'xoQAVGWWJNo', // Albert King - Born Under A Bad Sign (1967)
-    'x4j8cVASl_o', // Buddy Guy - Stone Crazy (1961)
-    'RW3xblkPBBs', // Otis Rush - I Cant Quit You Baby (1956)
-    'LbI3iXFpg00', // BB King - The Thrill Is Gone (1969)
-    'gVsLb_3IZpw', // John Lee Hooker - Boom Boom (1961)
-    '1mFOeGPKqcc', // Jimmy Reed - Big Boss Man (1960)
-    'a73H7e3Z5oE', // Elmore James - Dust My Broom (1951)
-    '-h5U8KAk3DY', // Lightnin Hopkins - Mojo Hand (1960)
-    'MnPIr0oJBpY', // Mississippi Fred McDowell - You Gotta Move (1965)
-    'WYk8NHFP1TU', // Robert Johnson - Cross Road Blues (1937)
-    'LOzSPSdg5LY', // Skip James - Devil Got My Woman (1931)
-    'v1Bpjp3GFgU', // Son House - Death Letter (1965)
-    '5DRSaupVQxE', // Charley Patton - Pony Blues (1929)
-    'qLbzJRPRzZc', // Bessie Smith - Down Hearted Blues (1923)
-    'WnKIVFaJ3SQ', // Ma Rainey - See See Rider (1924)
-    '8cPHiFA6UYY', // Memphis Minnie - Bumble Bee (1929)
-    'RkSdN1HJMK4', // Big Bill Broonzy - Key To The Highway (1941)
-    '8hBFXH2lFvI', // Bukka White - Shake Em On Down (1937)
-    'mSg5S7nnI1g', // Sleepy John Estes - Drop Down Mama (1935)
-    '3w7Br-j7OYA', // Professor Longhair - Tipitina (1953)
-    'pHFbNkfcrWk', // Fats Domino - The Fat Man (1949)
-    '1Qsm2HiVJSg', // Tampa Red - Anna Lou Blues (1931)
-    'ZRkTNn-CHIY'  // Champion Jack Dupree - Junker Blues (1940)
+    'TXD4vLPOQ_4','YDoO9EXDkfo','Wr3AVrqKr4w','z1KFxTNsxvA',
+    'D_P2WEHrEuk','xeaZ8hMnlSs','HNuikF1GRWA','xoQAVGWWJNo',
+    'x4j8cVASl_o','RW3xblkPBBs','LbI3iXFpg00','gVsLb_3IZpw',
+    '1mFOeGPKqcc','a73H7e3Z5oE','-h5U8KAk3DY','MnPIr0oJBpY',
+    'WYk8NHFP1TU','LOzSPSdg5LY','v1Bpjp3GFgU','5DRSaupVQxE',
+    'qLbzJRPRzZc','WnKIVFaJ3SQ','8cPHiFA6UYY','RkSdN1HJMK4',
+    '8hBFXH2lFvI','mSg5S7nnI1g','3w7Br-j7OYA','pHFbNkfcrWk',
+    '1Qsm2HiVJSg','ZRkTNn-CHIY'
   ],
 
   classical: [
-    'zucBfXpietU', // Erik Satie - Gymnopedie No 1 (1888)
-    'c9vr8UMeKG0', // Erik Satie - Gnossienne No 1 (1890)
-    'e1W17_gSGGk', // Claude Debussy - Clair De Lune (1905)
-    'WM-aikes39g', // Debussy - La Mer (1905)
-    'rOjHhS5MtvA', // Ravel - Bolero (1928)
-    '_NKBjwJxsWc', // Chopin - Nocturne Op 9 No 2 (1832)
-    'DdFEPPYjqT4', // Chopin - Ballade No 1 (1831)
-    'FbHnPNIVkKg', // Arvo Part - Spiegel Im Spiegel (1978)
-    'XFxeXN3uAno', // Arvo Part - Fratres (1977)
-    'GSNm9aq8RLg', // Philip Glass - Metamorphosis Two (1988)
-    'SiONMT3XZQY', // Philip Glass - Glassworks (1982)
-    'ZrWkqcKC_nM', // Bach - Goldberg Variations (1741)
-    'Nnuq9PXAbR0', // Bach - Cello Suite No 1 (1720)
-    'xFIdNhMPPUk', // Vivaldi - The Four Seasons Spring (1725)
-    'hKMkFiyzGBg', // Schubert - Ave Maria (1825)
-    'x03gguhXqaE', // Beethoven - Moonlight Sonata (1801)
-    'Z6tB7Q8sxzo', // Mozart - Lacrimosa (1791)
-    'Ho9h7PoFihw', // Pachelbel - Canon In D (1680)
-    '3P-JbMWl5Ls', // Albinoni - Adagio In G Minor (1708)
-    'hPOqKrGOFMI', // Barber - Adagio For Strings (1938)
-    'NROQXLIZ-iI', // Gorecki - Symphony No 3 (1976)
-    'R5lLRjTdkUU', // Shostakovich - String Quartet No 8 (1960)
-    'JFOXvDPRGRc', // Prokofiev - Romeo And Juliet (1936)
-    'aMzFSHQtQ6k', // Stravinsky - Rite Of Spring (1913)
-    'pFPNfkfZa7o', // Mahler - Symphony No 5 Adagietto (1904)
-    'h3GfTAmOoeU', // Brahms - Intermezzo Op 118 No 2 (1893)
-    'jv2WJn-DAPE', // Ravel - Piano Concerto in G (1932)
-    'uzIc52zJUJo', // Tavener - Song For Athene (1993)
-    'i31LFSAlF2w', // Henryk Gorecki - Beatus Vir (1979)
-    'UBZFB2P4S9k'  // Handel - Messiah Hallelujah (1741)
+    'zucBfXpietU','c9vr8UMeKG0','e1W17_gSGGk','WM-aikes39g',
+    'rOjHhS5MtvA','_NKBjwJxsWc','DdFEPPYjqT4','FbHnPNIVkKg',
+    'XFxeXN3uAno','GSNm9aq8RLg','SiONMT3XZQY','ZrWkqcKC_nM',
+    'Nnuq9PXAbR0','xFIdNhMPPUk','hKMkFiyzGBg','x03gguhXqaE',
+    'Z6tB7Q8sxzo','Ho9h7PoFihw','3P-JbMWl5Ls','hPOqKrGOFMI',
+    'NROQXLIZ-iI','R5lLRjTdkUU','JFOXvDPRGRc','aMzFSHQtQ6k',
+    'pFPNfkfZa7o','h3GfTAmOoeU','jv2WJn-DAPE','uzIc52zJUJo',
+    'i31LFSAlF2w','UBZFB2P4S9k'
   ]
 
 };
@@ -1145,11 +847,7 @@ var _currentCacheIndex=0;
 function loadVideo(videoId,title,genre,cachePool){
   currentVideoId=videoId;
   _currentCacheGenre=genre;
-  if(cachePool){
-    _currentCachePool=cachePool;
-  } else {
-    _currentCachePool=[];
-  }
+  _currentCachePool=cachePool||[];
   var wrap=document.getElementById('videoWrap');
   wrap.innerHTML='<iframe id="ytFrame" src="https://www.youtube.com/embed/'+videoId+
     '?autoplay=1&rel=0&modestbranding=1&enablejsapi=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
@@ -1174,10 +872,9 @@ function loadVideo(videoId,title,genre,cachePool){
 function handleEmbedError(){
   if(_currentCachePool.length>0){
     var nextId=_currentCachePool.shift();
-    if(nextId===currentVideoId&&_currentCachePool.length>0) nextId=_currentCachePool.shift();
     if(nextId){
       showToast('digging deeper...');
-      loadVideo(nextId,'Rare find from the crates \u2014 '+_currentCacheGenre,_currentCacheGenre,_currentCachePool);
+      loadVideo(nextId,_currentCacheGenre+' \u2014 rare find',_currentCacheGenre,_currentCachePool);
       return;
     }
   }
@@ -1241,7 +938,7 @@ async function digNewSample(){
     if(cache&&cache.length>0){
       var pool=cache.slice().sort(function(){return Math.random()-0.5;});
       var cachedId=pool.shift();
-      loadVideo(cachedId,'Rare find from the crates \u2014 '+genreLabel,genreLabel,pool);
+      loadVideo(cachedId,genreLabel+' \u2014 rare find',genreLabel,pool);
       btn.disabled=false;
       btn.textContent='DIG CRATE';
       return;
@@ -1262,10 +959,11 @@ async function digNewSample(){
         +'&videoCategoryId=10'
         +'&maxResults=25'
         +'&safeSearch=none'
-        +'&key='+YT_API_KEY
+        +'&key='+getApiKey()
         +'&order=relevance';
 
       var res=await fetch(searchUrl);
+      if(res.status===403){rotateKey();throw new Error('quota');}
       var data=await res.json();
 
       if(data.items&&data.items.length>0){
@@ -1284,9 +982,10 @@ async function digNewSample(){
           var detailUrl='https://www.googleapis.com/youtube/v3/videos'
             +'?part=contentDetails'
             +'&id='+ids
-            +'&key='+YT_API_KEY;
+            +'&key='+getApiKey();
 
           var detailRes=await fetch(detailUrl);
+          if(detailRes.status===403){rotateKey();throw new Error('quota');}
           var detailData=await detailRes.json();
 
           // Build duration map
