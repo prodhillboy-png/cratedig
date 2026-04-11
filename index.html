@@ -932,21 +932,6 @@ async function digNewSample(){
   var genre=document.getElementById('genreSelect').value;
   var genreLabel=getGenreLabel();
 
-  // 80% of the time: serve from cache — zero API calls, zero quota used
-  if(Math.random()<=0.80){
-    var cache=VIDEO_CACHE[genre];
-    if(cache&&cache.length>0){
-      var pool=cache.slice().sort(function(){return Math.random()-0.5;});
-      var cachedId=pool.shift();
-      loadVideo(cachedId,genreLabel+' \u2014 rare find',genreLabel,pool);
-      btn.disabled=false;
-      btn.textContent='DIG CRATE';
-      return;
-    }
-  }
-
-  // 20% of the time: hit live API for fresh discoveries
-
   while(!found&&attempts<6){
     attempts++;
     try{
@@ -980,7 +965,7 @@ async function digNewSample(){
           // Step 2: Get durations for filtered candidates
           var ids=passed.map(function(v){return v.id;}).join(',');
           var detailUrl='https://www.googleapis.com/youtube/v3/videos'
-            +'?part=contentDetails'
+            +'?part=contentDetails,status'
             +'&id='+ids
             +'&key='+getApiKey();
 
@@ -988,19 +973,22 @@ async function digNewSample(){
           if(detailRes.status===403){rotateKey();throw new Error('quota');}
           var detailData=await detailRes.json();
 
-          // Build duration map
+          // Build duration + embeddable map
           var durationMap={};
+          var embeddableMap={};
           if(detailData.items){
             for(var d=0;d<detailData.items.length;d++){
-              var dur=parseDuration(detailData.items[d].contentDetails.duration);
-              durationMap[detailData.items[d].id]=dur;
+              var item=detailData.items[d];
+              var dur=parseDuration(item.contentDetails.duration);
+              durationMap[item.id]=dur;
+              embeddableMap[item.id]=item.status&&item.status.embeddable===true;
             }
           }
 
-          // Filter: 2 min (120s) to 15 min (900s) — real songs only
+          // Filter: 2 min (120s) to 15 min (900s) — real songs only, embeddable only
           var durationPassed=passed.filter(function(v){
             var dur=durationMap[v.id]||0;
-            return dur>=120&&dur<=900;
+            return dur>=120&&dur<=900&&embeddableMap[v.id]===true;
           });
 
           if(durationPassed.length>0){
