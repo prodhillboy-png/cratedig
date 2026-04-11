@@ -1138,17 +1138,51 @@ function simulateDetection(){
   },110);
 }
 
-function loadVideo(videoId,title,genre){
+var _currentCacheGenre=null;
+var _currentCachePool=[];
+var _currentCacheIndex=0;
+
+function loadVideo(videoId,title,genre,cachePool){
   currentVideoId=videoId;
-  document.getElementById('videoWrap').innerHTML=
-    '<iframe src="https://www.youtube.com/embed/'+videoId+
-    '?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+  _currentCacheGenre=genre;
+  if(cachePool){
+    _currentCachePool=cachePool;
+  } else {
+    _currentCachePool=[];
+  }
+  var wrap=document.getElementById('videoWrap');
+  wrap.innerHTML='<iframe id="ytFrame" src="https://www.youtube.com/embed/'+videoId+
+    '?autoplay=1&rel=0&modestbranding=1&enablejsapi=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+  window.addEventListener('message',function ytMsg(e){
+    if(!e.data||typeof e.data!=='string') return;
+    try{
+      var d=JSON.parse(e.data);
+      if(d.event==='onError'&&(d.info===101||d.info===150||d.info===100)){
+        window.removeEventListener('message',ytMsg);
+        handleEmbedError();
+      }
+    }catch(err){}
+  });
   document.getElementById('trackTitle').textContent=decodeHtml(title);
   document.getElementById('metaRow').style.display='flex';
   document.getElementById('actionRow').style.display='flex';
   document.getElementById('badgeRow').innerHTML='<span class="badge badge-genre">'+genre+'</span>';
   addToHistory(videoId,title,genre);
   simulateDetection();
+}
+
+function handleEmbedError(){
+  if(_currentCachePool.length>0){
+    var nextId=_currentCachePool.shift();
+    if(nextId===currentVideoId&&_currentCachePool.length>0) nextId=_currentCachePool.shift();
+    if(nextId){
+      showToast('digging deeper...');
+      loadVideo(nextId,'Rare find from the crates \u2014 '+_currentCacheGenre,_currentCacheGenre,_currentCachePool);
+      return;
+    }
+  }
+  showToast('digging deeper...');
+  document.getElementById('digBtn').click();
 }
 
 function addToHistory(id,title,genre){
@@ -1203,9 +1237,11 @@ async function digNewSample(){
 
   // 80% of the time: serve from cache — zero API calls, zero quota used
   if(Math.random()<=0.80){
-    var cachedId=digFromCache(genre);
-    if(cachedId){
-      loadVideo(cachedId,'Rare find from the crates — '+genreLabel,genreLabel);
+    var cache=VIDEO_CACHE[genre];
+    if(cache&&cache.length>0){
+      var pool=cache.slice().sort(function(){return Math.random()-0.5;});
+      var cachedId=pool.shift();
+      loadVideo(cachedId,'Rare find from the crates \u2014 '+genreLabel,genreLabel,pool);
       btn.disabled=false;
       btn.textContent='DIG CRATE';
       return;
