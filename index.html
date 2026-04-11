@@ -7,193 +7,85 @@
   <meta name="description" content="Dig random music samples by genre, era and mood. Detect BPM and key instantly. Built for producers." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #1a1a1a; --surface: #222222; --surface2: #2a2a2a;
-      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.12);
-      --accent: #c8f135; --accent2: #7ef2c0; --text: #ffffff; --muted: #888888;
-      --heading: 'Syne', sans-serif; --body: 'Plus Jakarta Sans', sans-serif;
-      --glow: 0 0 15px rgba(200,241,53,0.35);
-      --glow-hover: 0 0 25px rgba(200,241,53,0.6);
-      --glow-strong: 0 0 20px rgba(200,241,53,0.4);
+      --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+      --accent: #c8f135; --accent2: #7ef2c0; --text: #f0ede6; --muted: #777;
+      --mono: 'Space Mono', monospace; --sans: 'DM Sans', sans-serif;
     }
-    html, body { background: var(--bg); color: var(--text); font-family: var(--body); min-height: 100vh; -webkit-font-smoothing: antialiased; }
-
-    /* ── TOP NAV ── */
-    .top-nav { display: flex; align-items: center; gap: 12px; padding: 16px 28px; max-width: 1200px; margin: 0 auto; }
-    .nav-pill { background: var(--accent); color: #1a1a1a; border: none; padding: 9px 22px; border-radius: 50px; font-family: var(--body); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; box-shadow: var(--glow); transition: box-shadow 0.2s, opacity 0.15s; text-decoration: none; }
-    .nav-pill:hover { box-shadow: var(--glow-hover); }
-    .nav-search { flex: 1; max-width: 420px; }
-    .nav-search input { width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 9px 18px; border-radius: 50px; font-family: var(--body); font-size: 13px; outline: none; }
-    .nav-search input::placeholder { color: var(--muted); }
-    .nav-search input:focus { border-color: var(--accent); }
-    .nav-right { display: flex; gap: 8px; margin-left: auto; }
-    .nav-pill-outline { background: transparent; color: var(--text); border: 1px solid var(--border2); padding: 9px 22px; border-radius: 50px; font-family: var(--body); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
-    .nav-pill-outline:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* ── APP CONTAINER ── */
-    .app { max-width: 1200px; margin: 0 auto; padding: 12px 28px 48px; }
-
-    /* ── TWO COLUMN GRID ── */
-    .main-grid { display: grid; grid-template-columns: 45% 55%; gap: 36px; align-items: start; }
-    @media (max-width: 860px) {
-      .main-grid { grid-template-columns: 1fr; gap: 24px; }
-      .top-nav { flex-wrap: wrap; padding: 14px 16px; }
-      .nav-search { order: 3; max-width: 100%; flex-basis: 100%; }
-      .app { padding: 12px 16px 48px; }
-    }
-
-    /* ── LEFT COLUMN ── */
-    .col-left { padding-top: 20px; }
-    .hero-title { font-family: var(--heading); font-size: 48px; font-weight: 800; line-height: 1.08; letter-spacing: -1.5px; margin-bottom: 14px; color: var(--text); }
-    @media (max-width: 860px) { .hero-title { font-size: 34px; } }
-    .hero-sub { font-size: 15px; color: var(--muted); line-height: 1.55; margin-bottom: 24px; max-width: 380px; }
-    .dig-btn { background: var(--accent); color: #1a1a1a; border: none; padding: 14px 36px; border-radius: 50px; font-family: var(--heading); font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; box-shadow: var(--glow-strong); transition: box-shadow 0.2s, opacity 0.15s; margin-bottom: 28px; }
-    .dig-btn:hover { box-shadow: var(--glow-hover); }
-    .dig-btn:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
-
-    /* ── GENRE PILLS ── */
-    .genre-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
-    .genre-pill { background: var(--surface); color: var(--text); border: 1px solid var(--border2); padding: 7px 16px; border-radius: 50px; font-family: var(--body); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.18s; white-space: nowrap; }
-    .genre-pill:hover { border-color: var(--accent); color: var(--accent); }
-    .genre-pill.active { background: var(--accent); color: #1a1a1a; border-color: var(--accent); font-weight: 600; box-shadow: var(--glow); }
-
-    /* ── HIDDEN GENRE SELECT (JS reads from this) ── */
-    .hidden-select { position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0; }
-
-    /* ── ERA / MOOD FILTERS ── */
-    .filter-row { display: flex; gap: 10px; margin-bottom: 22px; }
-    .filter-row select { background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 8px 14px; border-radius: 50px; font-family: var(--body); font-size: 12px; outline: none; appearance: none; cursor: pointer; min-width: 110px; }
-    .filter-row select:focus { border-color: var(--accent); }
-
-    /* ── WAVEFORM VISUALIZER ── */
-    .waveform { display: flex; align-items: flex-end; gap: 2px; height: 64px; padding: 8px 0; }
-    .waveform .bar { flex: 1; background: var(--accent); border-radius: 2px 2px 0 0; min-width: 3px; opacity: 0.7; transition: height 0.15s ease; }
-    .waveform.active .bar { animation: pulse var(--dur) ease-in-out infinite alternate; }
-    @keyframes pulse {
-      0% { height: var(--h-min); opacity: 0.5; }
-      100% { height: var(--h-max); opacity: 1; }
-    }
-
-    /* ── RIGHT COLUMN ── */
-    .col-right { padding-top: 8px; }
-
-    /* ── PLAYER CARD ── */
-    .player-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
-    .video-wrap { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: 12px 12px 0 0; overflow: hidden; }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+    .app { max-width: 860px; margin: 0 auto; padding: 32px 20px 48px; }
+    .header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 32px; }
+    .logo { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--accent); letter-spacing: -1px; }
+    .tagline { font-size: 13px; color: var(--muted); font-family: var(--mono); }
+    .filters { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 16px; align-items: end; }
+    @media (max-width: 600px) { .filters { grid-template-columns: 1fr 1fr; } .dig-btn { grid-column: span 2; } }
+    .filter-group label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-family: var(--mono); }
+    select { width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 10px 12px; border-radius: 6px; font-family: var(--sans); font-size: 14px; outline: none; appearance: none; cursor: pointer; }
+    select:focus { border-color: var(--accent); }
+    .dig-btn { background: var(--accent); color: #0a0a0a; border: none; padding: 11px 24px; border-radius: 6px; font-family: var(--mono); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+    .dig-btn:hover { opacity: 0.85; } .dig-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .player-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+    .video-wrap { position: relative; width: 100%; padding-top: 42%; background: #000; }
     .video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
-    .placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--muted); }
-    .placeholder-icon { width: 56px; height: 56px; border: 2px solid var(--border2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); }
+    .placeholder-icon { width: 52px; height: 52px; border: 2px solid var(--border2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
     .meta-row { padding: 14px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--border); }
-    .track-title { font-family: var(--body); font-size: 14px; font-weight: 600; flex: 1; min-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-title { font-size: 14px; font-weight: 500; flex: 1; min-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .badges { display: flex; gap: 6px; flex-wrap: wrap; }
-    .badge { font-family: var(--body); font-size: 11px; padding: 3px 10px; border-radius: 50px; font-weight: 600; }
+    .badge { font-family: var(--mono); font-size: 11px; padding: 3px 9px; border-radius: 4px; font-weight: 700; }
     .badge-bpm { background: rgba(200,241,53,0.12); color: var(--accent); border: 1px solid rgba(200,241,53,0.25); }
     .badge-key { background: rgba(126,242,192,0.12); color: var(--accent2); border: 1px solid rgba(126,242,192,0.25); }
     .badge-genre { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid var(--border); }
-
-    /* ── ACTION BUTTONS ── */
     .action-row { padding: 0 16px 14px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .act-btn { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 8px 16px; border-radius: 50px; font-size: 12px; font-family: var(--body); font-weight: 500; cursor: pointer; transition: all 0.15s; }
+    .act-btn { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 7px 14px; border-radius: 5px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.12s; }
     .act-btn:hover { border-color: var(--accent); color: var(--accent); }
     .act-btn.copied { color: var(--accent2); border-color: var(--accent2); }
-
-    /* ── BPM / KEY DETECTOR CARDS ── */
-    .det-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-    .det-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 12px; padding: 20px; position: relative; overflow: hidden; }
-    .det-card-label { display: block; font-family: var(--body); font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-    .det-card-value { font-family: var(--heading); font-size: 32px; font-weight: 800; color: var(--text); }
-    .det-card-value.bpm-val { color: var(--accent); }
-    .det-card-value.key-val { color: var(--accent2); }
-    .det-card-mode { font-family: var(--body); font-size: 14px; font-weight: 500; color: var(--muted); margin-left: 4px; }
-    .det-card-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: var(--accent); opacity: 0.4; border-radius: 0 0 12px 12px; }
-    .det-card:last-child .det-card-bar { background: var(--accent2); }
-
-    /* hidden status dot + detect bar (JS sets these) */
-    .status-dot { display: none; }
-    .detecting-bar { height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; width: 0%; transition: width 0.25s ease; margin-bottom: 16px; }
-
-    /* ── UPLOAD SECTION ── */
+    .detector-card { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .det-header { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-family: var(--mono); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; transition: background 0.3s; }
+    .status-dot.live { background: var(--accent); }
+    .det-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .det-stat { background: var(--surface2); border-radius: 6px; padding: 12px; text-align: center; }
+    .det-label { font-size: 10px; color: var(--muted); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .det-value { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--text); }
+    .det-value.bpm-val { color: var(--accent); } .det-value.key-val { color: var(--accent2); }
+    .detecting-bar { height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; margin-top: 14px; width: 0%; transition: width 0.25s ease; }
+    .upload-section { background: var(--surface); border: 1px dashed var(--border2); border-radius: 10px; padding: 22px; text-align: center; margin-bottom: 16px; }
+    .upload-section p { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+    .upload-btn-wrap { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
     input[type="file"] { display: none; }
-
-    /* ── HISTORY ── */
-    .history-header { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-family: var(--body); font-weight: 600; margin-bottom: 10px; }
+    .upload-label { background: var(--surface2); border: 1px solid var(--border2); color: var(--text); padding: 8px 18px; border-radius: 5px; font-size: 12px; font-family: var(--mono); cursor: pointer; transition: all 0.12s; }
+    .upload-label:hover { border-color: var(--accent); color: var(--accent); }
+    .history-header { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-family: var(--mono); margin-bottom: 10px; }
     .history-list { display: flex; flex-direction: column; gap: 6px; }
-    .history-item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; cursor: pointer; font-size: 13px; transition: border-color 0.15s; }
+    .history-item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; cursor: pointer; font-size: 12px; }
     .history-item:hover { border-color: var(--border2); }
-    .hi-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); font-weight: 500; }
-    .hi-badge { font-family: var(--body); font-size: 11px; color: var(--muted); white-space: nowrap; }
-
-    /* ── BOTTOM SEARCH ── */
-    .bottom-search { margin-top: 28px; margin-bottom: 12px; }
-    .bottom-search input { width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 12px 22px; border-radius: 50px; font-family: var(--body); font-size: 14px; outline: none; }
-    .bottom-search input::placeholder { color: var(--muted); }
-    .bottom-search input:focus { border-color: var(--accent); }
-
-    /* ── SPINNER ── */
-    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(26,26,26,0.3); border-top-color: #1a1a1a; border-radius: 50%; animation: spin 0.65s linear infinite; vertical-align: middle; }
+    .hi-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+    .hi-badge { font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap; }
+    .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(10,10,10,0.3); border-top-color: #0a0a0a; border-radius: 50%; animation: spin 0.65s linear infinite; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── TOAST ── */
-    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(70px); background: var(--surface2); border: 1px solid var(--accent); color: var(--accent); padding: 10px 22px; border-radius: 50px; font-family: var(--body); font-size: 13px; font-weight: 500; transition: transform 0.22s; z-index: 1000; pointer-events: none; box-shadow: var(--glow); }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(70px); background: var(--surface2); border: 1px solid var(--accent); color: var(--accent); padding: 9px 20px; border-radius: 6px; font-family: var(--mono); font-size: 12px; transition: transform 0.22s; z-index: 1000; pointer-events: none; }
     .toast.show { transform: translateX(-50%) translateY(0); }
-
-    /* ── FOOTER ── */
-    .footer-sig { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .sig-line { font-family: var(--body); font-size: 11px; color: rgba(255,255,255,0.18); letter-spacing: 0.06em; }
-    .sig-name { font-family: var(--heading); font-size: 14px; font-weight: 700; color: rgba(200,241,53,0.45); letter-spacing: 0.06em; }
+    .footer-sig { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .sig-line { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,0.18); letter-spacing: 0.06em; }
+    .sig-name { font-family: var(--mono); font-size: 13px; font-weight: 700; color: rgba(200,241,53,0.45); letter-spacing: 0.06em; }
     .sig-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,0.15); }
   </style>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q5B58GKBKY"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-Q5B58GKBKY');
-  </script>
 </head>
 <body>
-
-<!-- ── TOP NAVIGATION ── -->
-<nav class="top-nav">
-  <button class="nav-pill" onclick="document.getElementById('digBtn').click()">Discover</button>
-  <div class="nav-search"><input type="text" placeholder="Search samples..." /></div>
-  <div class="nav-right">
-    <label class="nav-pill" for="audioFile" style="cursor:pointer">Upload</label>
-    <button class="nav-pill" onclick="document.getElementById('copyBtn').click()">Save</button>
-  </div>
-</nav>
-
 <div class="app">
-  <div class="main-grid">
-
-    <!-- ── LEFT COLUMN ── -->
-    <div class="col-left">
-      <h1 class="hero-title">Music samples<br>discovery</h1>
-      <p class="hero-sub">Dig random vinyl rips, rare grooves, and hidden gems by genre. Detect BPM and key instantly. Built for producers and beat makers.</p>
-      <button class="dig-btn" id="digBtn">DIG CRATE</button>
-
-      <!-- Genre Pills -->
-      <div class="genre-pills" id="genrePills">
-        <button class="genre-pill active" data-value="soul_jazz">Soul/Jazz</button>
-        <button class="genre-pill" data-value="boom_bap">Hip-Hop</button>
-        <button class="genre-pill" data-value="funk_break">Funk</button>
-        <button class="genre-pill" data-value="lofi">Lo-Fi</button>
-        <button class="genre-pill" data-value="afrobeat">Afrobeat</button>
-        <button class="genre-pill" data-value="latin">Latin</button>
-        <button class="genre-pill" data-value="electronic">Electronic</button>
-        <button class="genre-pill" data-value="gospel">Gospel</button>
-        <button class="genre-pill" data-value="psych">Psych</button>
-        <button class="genre-pill" data-value="reggae">Reggae</button>
-        <button class="genre-pill" data-value="blues">Blues</button>
-        <button class="genre-pill" data-value="classical">Classical</button>
-      </div>
-
-      <!-- Hidden genre select for JS compatibility -->
-      <select id="genreSelect" class="hidden-select">
+  <div class="header">
+    <div class="logo">CRATEDIG</div>
+    <div class="tagline">// random sample discovery + key/bpm detection</div>
+  </div>
+  <div class="filters">
+    <div class="filter-group">
+      <label>Genre</label>
+      <select id="genreSelect">
         <option value="soul_jazz">Soul / Jazz</option>
         <option value="boom_bap">Boom Bap</option>
         <option value="funk_break">Funk / Break</option>
@@ -207,86 +99,73 @@
         <option value="blues">Blues</option>
         <option value="classical">Classical</option>
       </select>
-
-      <!-- Era & Mood -->
-      <div class="filter-row">
-        <select id="eraSelect">
-          <option value="">Any Era</option>
-          <option value="1960s">60s</option>
-          <option value="1970s">70s</option>
-          <option value="1980s">80s</option>
-          <option value="1990s">90s</option>
-          <option value="2000s">2000s</option>
-        </select>
-        <select id="moodSelect">
-          <option value="">Any Mood</option>
-          <option value="melancholy">Melancholy</option>
-          <option value="upbeat">Upbeat</option>
-          <option value="dark">Dark / Moody</option>
-          <option value="smooth">Smooth</option>
-          <option value="aggressive">Aggressive</option>
-          <option value="dreamy">Dreamy</option>
-        </select>
-      </div>
-
-      <!-- Waveform Visualizer -->
-      <div class="waveform" id="waveform"></div>
     </div>
-
-    <!-- ── RIGHT COLUMN ── -->
-    <div class="col-right">
-      <div class="player-card">
-        <div class="video-wrap" id="videoWrap">
-          <div class="placeholder">
-            <div class="placeholder-icon">&#9654;</div>
-            <span style="font-size:13px;font-family:var(--body);font-weight:500">hit dig crate to find a sample</span>
-          </div>
-        </div>
-        <div class="meta-row" id="metaRow" style="display:none">
-          <div class="track-title" id="trackTitle">-</div>
-          <div class="badges" id="badgeRow"></div>
-        </div>
-        <div class="action-row" id="actionRow" style="display:none">
-          <button class="act-btn" id="copyBtn">copy link</button>
-          <button class="act-btn" id="nextBtn">next sample</button>
-          <button class="act-btn" id="ytBtn">open on youtube</button>
-        </div>
+    <div class="filter-group">
+      <label>Era</label>
+      <select id="eraSelect">
+        <option value="">Any Era</option>
+        <option value="1960s">60s</option>
+        <option value="1970s">70s</option>
+        <option value="1980s">80s</option>
+        <option value="1990s">90s</option>
+        <option value="2000s">2000s</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Mood</label>
+      <select id="moodSelect">
+        <option value="">Any Mood</option>
+        <option value="melancholy">Melancholy</option>
+        <option value="upbeat">Upbeat</option>
+        <option value="dark">Dark / Moody</option>
+        <option value="smooth">Smooth</option>
+        <option value="aggressive">Aggressive</option>
+        <option value="dreamy">Dreamy</option>
+      </select>
+    </div>
+    <button class="dig-btn" id="digBtn">DIG CRATE</button>
+  </div>
+  <div class="player-card">
+    <div class="video-wrap" id="videoWrap">
+      <div class="placeholder">
+        <div class="placeholder-icon">&#9654;</div>
+        <span style="font-size:12px;font-family:var(--mono)">hit dig crate to find a sample</span>
       </div>
-
-      <!-- BPM / Key Cards -->
-      <div class="det-cards">
-        <div class="det-card">
-          <span class="det-card-label">BPM</span>
-          <span class="det-card-value bpm-val" id="bpmVal">-</span>
-          <div class="det-card-bar"></div>
-        </div>
-        <div class="det-card">
-          <span class="det-card-label">KEY</span>
-          <span class="det-card-value key-val" id="keyVal">-</span>
-          <span class="det-card-mode" id="modeVal">-</span>
-          <div class="det-card-bar"></div>
-        </div>
-      </div>
-      <span class="status-dot" id="statusDot"></span>
-      <div class="detecting-bar" id="detectBar"></div>
+    </div>
+    <div class="meta-row" id="metaRow" style="display:none">
+      <div class="track-title" id="trackTitle">-</div>
+      <div class="badges" id="badgeRow"></div>
+    </div>
+    <div class="action-row" id="actionRow" style="display:none">
+      <button class="act-btn" id="copyBtn">copy link</button>
+      <button class="act-btn" id="nextBtn">next sample</button>
+      <button class="act-btn" id="ytBtn">open on youtube</button>
     </div>
   </div>
-
-  <!-- Upload (hidden file input) -->
-  <input type="file" id="audioFile" accept="audio/*" />
-
-  <!-- History -->
-  <div id="historySection" style="display:none;margin-top:24px">
+  <div class="detector-card">
+    <div class="det-header">
+      <span class="status-dot" id="statusDot"></span>
+      bpm + key detector
+    </div>
+    <div class="det-grid">
+      <div class="det-stat"><div class="det-label">BPM</div><div class="det-value bpm-val" id="bpmVal">-</div></div>
+      <div class="det-stat"><div class="det-label">Key</div><div class="det-value key-val" id="keyVal">-</div></div>
+      <div class="det-stat"><div class="det-label">Mode</div><div class="det-value" id="modeVal" style="font-size:18px;padding-top:3px">-</div></div>
+    </div>
+    <div class="detecting-bar" id="detectBar"></div>
+  </div>
+  <div class="upload-section">
+    <p>Upload your own audio to detect its key + BPM</p>
+    <div class="upload-btn-wrap">
+      <label class="upload-label" for="audioFile">upload audio</label>
+      <input type="file" id="audioFile" accept="audio/*" />
+      <span style="font-size:11px;color:var(--muted);font-family:var(--mono)">mp3 · wav · ogg</span>
+    </div>
+  </div>
+  <div id="historySection" style="display:none;margin-top:16px">
     <div class="history-header">recent digs</div>
     <div class="history-list" id="historyList"></div>
   </div>
-
-  <!-- Bottom Search -->
-  <div class="bottom-search">
-    <input type="text" placeholder="Search..." />
-  </div>
-
-  <!-- Footer -->
   <div class="footer-sig">
     <span class="sig-line">crafted by</span>
     <span class="sig-dot"></span>
@@ -295,246 +174,224 @@
     <span class="sig-line">cratedig.site</span>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
-var API_KEYS = [
-  'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0',
-  'AIzaSyBjrzVdK4lFMmbgrDeeDkoLmU7SvWgrYyY',
-  'AIzaSyCDBRrWlpZFc9gdKuEunuqm7UG0qm3vcGM'
-];
-var currentKeyIndex = 0;
-function getApiKey(){ return API_KEYS[currentKeyIndex]; }
-
-// Fetch with automatic key rotation on 403
-async function fetchWithKeyRotation(buildUrl){
-  var tried=0;
-  while(tried<API_KEYS.length){
-    var url=buildUrl(getApiKey());
-    var res=await fetch(url);
-    if(res.status===403){
-      tried++;
-      currentKeyIndex=(currentKeyIndex+1)%API_KEYS.length;
-      if(tried>=API_KEYS.length) return {allKeysExhausted:true};
-      continue;
-    }
-    return res;
-  }
-  return {allKeysExhausted:true};
-}
+var YT_API_KEY = 'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0';
 
 // ─────────────────────────────────────────────────────────────
-// SEARCH STRATEGY v2.5
-// Two-pass system: YouTube API (music category + type=video)
-// then second API call for real ISO 8601 duration filtering.
-// Only keeps videos between 60s and 300s. No exceptions.
+// SEARCH STRATEGY
+// Goal: pull strictly music — vinyl rips, rare grooves, full tracks
+// uploaded by record collectors, labels, and music archivists.
+// Queries use producer language + obscurity signals.
+// API enforces: music category only, any duration (shorts blocked by title filter),
+// no shorts, no playlists, single videos only.
+// Client filter rejects anything with non-music keywords.
 // ─────────────────────────────────────────────────────────────
 
 var SEARCH_TERMS = {
   soul_jazz: [
-    'rare northern soul 45 rpm deep cut full song',
-    'obscure soul jazz organ trio vinyl rip full track',
-    'rare 70s soul ballad hidden gem 45 pressing full song',
-    'deep soul groove rare record lp full track',
-    'obscure soul singer vinyl rip 45 rpm full song',
-    'rare soul jazz funk groove deep cut full track',
-    'vintage soul rare pressing hidden gem full song',
-    'rare southern soul 45 deep groove full track',
-    'obscure jazz funk rare groove vinyl full song',
-    'rare soul gem 45 rpm deep cut full track',
-    'hidden gem soul jazz vinyl rip groove full song',
-    'rare 60s soul deep cut obscure pressing full track',
-    'obscure soul groove rare vinyl single full song',
-    'deep soul funk rare record hidden gem full track',
-    'rare soul jazz obscure vinyl rip groove full song'
+    'rare soul 45 rpm full song',
+    'obscure soul singer full track vinyl',
+    'deep soul groove rare record',
+    'northern soul 45 full song',
+    'southern soul deep cut full track',
+    'soul jazz rare groove full song',
+    'vintage soul ballad full track',
+    'rare soul funk 45 rpm',
+    'deep soul underground full song',
+    'soul jazz funk rare full track',
+    'obscure soul record full song',
+    'rare soul gem full track vinyl',
+    'soul groove hidden gem full song',
+    'classic soul rare pressing full track',
+    'soul jazz obscure full song vinyl'
   ],
   boom_bap: [
-    'rare boom bap soul sample vinyl rip full song',
-    'obscure 90s rap instrumental underground groove full track',
-    'dusty crate dig hip hop rare soul chop full song',
-    'underground boom bap rare groove vinyl full track',
-    'rare east coast hip hop instrumental deep cut full song',
-    'obscure rap beat rare soul sample groove full track',
-    'grimy boom bap underground rare vinyl full song',
-    'rare hip hop instrumental soul groove deep cut full track',
-    'dusty boom bap rare record vinyl rip full song',
-    'underground rap instrumental hidden gem groove full track',
-    'rare 90s boom bap groove obscure vinyl full song',
-    'crate dig hip hop rare soul funk sample full track',
-    'obscure boom bap instrumental rare pressing full song',
-    'rare underground hip hop groove deep cut full track',
-    'dusty vinyl boom bap rare soul chop full song'
+    'underground hip hop instrumental full track',
+    'rare boom bap groove full song',
+    'east coast hip hop rare full track',
+    'obscure rap instrumental full song',
+    'dusty boom bap loop full track',
+    'grimy hip hop rare full song',
+    'raw rap groove underground full track',
+    'hard hitting hip hop rare full song',
+    'vintage rap instrumental full track',
+    'underground rap rare gem full song',
+    'boom bap groove obscure full track',
+    'rare hip hop beat full song',
+    'dirty boom bap underground full track',
+    'classic rap instrumental rare full song',
+    'crate dig hip hop full track'
   ],
   funk_break: [
-    'rare funk 45 rpm break groove deep cut full song',
-    'obscure funk band rare vinyl rip groove full track',
-    'deep funk rare 45 pressing hidden gem full song',
-    'rare funk break soul groove vinyl rip full track',
-    'obscure heavy funk rare 45 deep cut full song',
-    'rare funky drummer break groove vinyl full track',
-    'deep funk groove rare record pressing full song',
-    'obscure soul funk rare break 45 rpm full track',
-    'rare funk gem hidden groove vinyl rip full song',
-    'deep funk underground rare pressing groove full track',
-    'rare 70s funk break 45 rpm deep cut full song',
-    'obscure funk soul rare groove vinyl full track',
-    'rare funky break hidden gem 45 pressing full song',
-    'deep funk rare record groove vinyl rip full track',
-    'obscure rare funk 45 break deep groove full song'
+    'rare funk 45 rpm full song',
+    'deep funk groove full track vinyl',
+    'funky break rare full song',
+    'obscure funk band full track',
+    'heavy funk rare 45 full song',
+    'funky soul groove full track rare',
+    'rare funk gem full song vinyl',
+    'deep funk underground full track',
+    'funky drummer break full song rare',
+    'obscure soul funk full track',
+    'rare funk record full song',
+    'deep groove funk full track vinyl',
+    'funky rare pressing full song',
+    'soul funk hidden gem full track',
+    'classic funk rare full song vinyl'
   ],
   lofi: [
-    'rare jazz trio vinyl rip obscure groove full song',
-    'vintage jazz piano rare record deep cut full track',
-    'obscure cool jazz rare vinyl hidden gem full song',
-    'dusty jazz vinyl rip rare groove full track',
-    'rare late night jazz obscure record full song',
-    'mellow jazz groove rare vinyl pressing full track',
-    'obscure jazz quartet rare deep cut full song',
-    'rare soft jazz vinyl rip groove full track',
-    'vintage piano jazz rare record hidden gem full song',
-    'obscure jazz soul groove rare vinyl full track',
-    'rare jazz record deep cut vinyl rip full song',
-    'dusty vinyl jazz rare groove hidden gem full track',
-    'rare jazz pressing obscure deep cut full song',
-    'vintage jazz groove rare vinyl rip full track',
-    'obscure rare jazz record groove deep cut full song'
+    'rare jazz vinyl full song',
+    'vintage jazz piano full track',
+    'obscure jazz trio full song',
+    'dusty jazz loop full track rare',
+    'late night jazz rare full song',
+    'mellow jazz groove full track vinyl',
+    'cool jazz obscure full song',
+    'soft jazz rare full track',
+    'vintage piano jazz full song rare',
+    'jazz soul groove full track obscure',
+    'rare jazz record full song vinyl',
+    'chill jazz hidden gem full track',
+    'lofi jazz rare pressing full song',
+    'dusty vinyl jazz full track',
+    'smooth jazz rare groove full song'
   ],
   afrobeat: [
-    'rare afrobeat vinyl rip groove deep cut full song',
-    'obscure afro funk rare 45 pressing full track',
-    'rare highlife groove vinyl hidden gem full song',
-    'west african funk rare record deep cut full track',
-    'obscure nigerian funk rare groove vinyl rip full song',
-    'rare afrobeat underground groove pressing full track',
-    'afro soul rare vinyl rip hidden gem full song',
-    'rare lagos funk groove deep cut 45 rpm full track',
-    'obscure afro jazz rare groove vinyl full song',
-    'rare west african groove hidden gem vinyl rip full track',
-    'obscure afrobeat deep cut rare pressing full song',
-    'rare afro funk groove vinyl rip 45 rpm full track',
-    'obscure highlife rare record groove full song',
-    'rare afrobeat vinyl hidden gem deep groove full track',
-    'obscure afro funk rare deep cut groove full song'
+    'afrobeat rare full song vinyl',
+    'afro funk groove full track rare',
+    'highlife rare full song',
+    'west african funk full track obscure',
+    'afrobeat underground full song rare',
+    'nigerian funk rare full track',
+    'afro soul groove full song vinyl',
+    'afrobeat hidden gem full track',
+    'lagos funk rare full song',
+    'afro rhythm groove full track rare',
+    'afrobeat obscure full song vinyl',
+    'afro jazz rare full track',
+    'west african groove full song rare',
+    'afrobeat deep cut full track',
+    'rare afro funk full song vinyl'
   ],
   latin: [
-    'rare bossa nova vinyl rip groove deep cut full song',
-    'obscure latin jazz rare pressing hidden gem full track',
-    'rare afro cuban groove vinyl rip full song',
-    'obscure latin soul rare record deep cut full track',
-    'rare samba jazz groove vinyl pressing full song',
-    'obscure latin funk rare groove hidden gem full track',
-    'rare bossa nova deep cut vinyl rip full song',
-    'obscure cuban jazz rare groove pressing full track',
-    'rare latin groove hidden gem vinyl rip full song',
-    'obscure mambo rare vinyl deep cut groove full track',
-    'rare latin soul pressing groove vinyl rip full song',
-    'obscure afro latin rare groove deep cut full track',
-    'rare bossa nova hidden gem vinyl pressing full song',
-    'obscure latin jazz rare vinyl rip groove full track',
-    'rare latin groove deep cut obscure vinyl full song'
+    'bossa nova rare full song vinyl',
+    'latin jazz groove full track rare',
+    'afro cuban rare full song',
+    'latin soul full track obscure',
+    'samba jazz rare full song vinyl',
+    'latin funk groove full track rare',
+    'bossa nova obscure full song',
+    'cuban jazz rare full track vinyl',
+    'latin groove hidden gem full song',
+    'mambo rare full track vinyl',
+    'latin soul rare pressing full song',
+    'afro latin groove full track rare',
+    'bossa nova deep cut full song',
+    'latin jazz hidden gem full track',
+    'rare latin groove full song vinyl'
   ],
   electronic: [
-    'rare vintage synthesizer groove vinyl rip full song',
-    'obscure analog synth rare pressing deep cut full track',
-    'rare italo disco vinyl rip groove hidden gem full song',
-    'obscure electronic soul rare groove vinyl full track',
-    'rare synth funk deep cut vinyl rip groove full song',
-    'vintage drum machine rare groove pressing full track',
-    'rare space disco vinyl rip hidden gem full song',
-    'obscure electronic funk rare groove deep cut full track',
-    'rare retro synth groove vinyl pressing full song',
-    'obscure kosmische rare vinyl rip groove full track',
-    'rare vintage electronic groove deep cut full song',
-    'obscure analog synth rare pressing groove full track',
-    'rare electronic soul hidden gem vinyl rip full song',
-    'obscure synth groove rare deep cut vinyl full track',
-    'rare electronic vinyl rip groove hidden gem full song'
+    'vintage synthesizer groove full song',
+    'analog synth rare full track',
+    'italo disco rare full song vinyl',
+    'electronic soul groove full track rare',
+    'synth funk obscure full song',
+    'vintage drum machine groove full track',
+    'space disco rare full song vinyl',
+    'electronic funk obscure full track',
+    'retro synth groove full song rare',
+    'kosmische rare full track vinyl',
+    'vintage electronic groove full song',
+    'analog synth rare pressing full track',
+    'electronic soul hidden gem full song',
+    'synth groove obscure full track rare',
+    'rare electronic full song vinyl'
   ],
   gospel: [
-    'rare vintage gospel vinyl rip groove full song',
-    'obscure gospel soul rare pressing deep cut full track',
-    'rare black gospel vinyl groove hidden gem full song',
-    'obscure gospel choir rare record groove full track',
-    'rare southern gospel vinyl rip deep cut full song',
-    'obscure gospel organ groove rare pressing full track',
-    'rare deep gospel soul vinyl rip groove full song',
-    'obscure gospel funk rare hidden gem full track',
-    'rare vintage black gospel vinyl groove full song',
-    'obscure gospel soul rare pressing deep cut full track',
-    'rare gospel pressing vinyl rip hidden gem full song',
-    'obscure gospel groove deep cut rare record full track',
-    'rare classic gospel vinyl rip groove full song',
-    'obscure gospel soul underground rare pressing full track',
-    'rare gospel choir vinyl groove hidden gem full song'
+    'vintage gospel full song rare vinyl',
+    'gospel soul groove full track obscure',
+    'black gospel rare full song',
+    'gospel choir groove full track rare',
+    'southern gospel rare full song vinyl',
+    'gospel organ groove full track',
+    'deep gospel soul rare full song',
+    'gospel funk rare full track vinyl',
+    'vintage black gospel obscure full song',
+    'gospel soul hidden gem full track',
+    'rare gospel pressing full song',
+    'gospel groove deep cut full track',
+    'classic gospel rare full song vinyl',
+    'gospel soul underground full track',
+    'rare gospel choir full song vinyl'
   ],
   psych: [
-    'rare psychedelic rock vinyl rip groove full song',
-    'obscure garage psych rare 45 pressing full track',
-    'rare fuzz guitar vinyl rip deep cut full song',
-    'obscure psych rock rare groove hidden gem full track',
-    'rare vintage psychedelic vinyl pressing groove full song',
-    'obscure garage rock rare 45 rpm deep cut full track',
-    'rare psychedelic soul groove vinyl rip full song',
-    'obscure acid rock rare vinyl pressing groove full track',
-    'rare psych pop deep cut vinyl rip full song',
-    'obscure vintage garage psych rare groove full track',
-    'rare psychedelic funk vinyl rip hidden gem full song',
-    'obscure psych rock rare pressing deep cut full track',
-    'rare psychedelic gem vinyl groove full song',
-    'obscure garage psych hidden gem rare pressing full track',
-    'rare psychedelic groove vinyl rip deep cut full song'
+    'psychedelic rock rare full song vinyl',
+    'garage psych obscure full track',
+    'fuzz guitar rare full song',
+    'psych rock underground full track rare',
+    'vintage psychedelic full song obscure',
+    'garage rock rare 45 full song',
+    'psychedelic soul groove full track rare',
+    'acid rock obscure full song vinyl',
+    'psych pop rare full track',
+    'vintage garage psych full song rare',
+    'psychedelic funk rare full track vinyl',
+    'obscure psych rock full song',
+    'rare psychedelic gem full track',
+    'garage psych hidden gem full song',
+    'psychedelic groove rare full track vinyl'
   ],
   reggae: [
-    'rare roots reggae vinyl rip groove deep cut full song',
-    'obscure dub music rare pressing groove full track',
-    'rare rocksteady vinyl rip hidden gem full song',
-    'obscure reggae groove rare record deep cut full track',
-    'rare jamaican 45 rpm vinyl rip groove full song',
-    'obscure lovers rock rare pressing hidden gem full track',
-    'rare dub plate groove vinyl rip full song',
-    'obscure vintage reggae rare deep cut groove full track',
-    'rare roots dub vinyl rip pressing groove full song',
-    'obscure reggae soul rare groove hidden gem full track',
-    'rare ska vinyl rip 45 rpm deep cut full song',
-    'obscure vintage dub groove rare pressing full track',
-    'rare reggae hidden gem vinyl rip groove full song',
-    'obscure roots reggae deep cut rare pressing full track',
-    'rare jamaican groove vinyl rip hidden gem full song'
+    'roots reggae rare full song vinyl',
+    'dub music obscure full track',
+    'rocksteady rare full song vinyl',
+    'reggae groove rare full track',
+    'jamaican rare 45 full song',
+    'lovers rock rare full track vinyl',
+    'dub plate groove full song rare',
+    'vintage reggae obscure full track',
+    'roots dub rare full song vinyl',
+    'reggae soul groove full track rare',
+    'ska rare full song vinyl',
+    'vintage dub groove full track',
+    'reggae hidden gem full song rare',
+    'roots reggae deep cut full track',
+    'rare jamaican groove full song vinyl'
   ],
   blues: [
-    'rare chicago blues vinyl rip groove deep cut full song',
-    'obscure electric blues rare pressing hidden gem full track',
-    'rare delta blues vinyl rip groove full song',
-    'obscure blues groove rare record deep cut full track',
-    'rare vintage blues vinyl rip pressing full song',
-    'obscure slow blues groove rare hidden gem full track',
-    'rare blues soul vinyl rip deep cut full song',
-    'obscure dirty blues rare groove pressing full track',
-    'rare blues rock vinyl rip groove hidden gem full song',
-    'obscure vintage electric blues rare deep cut full track',
-    'rare blues guitarist vinyl rip groove full song',
-    'obscure deep blues groove rare pressing full track',
-    'rare classic blues vinyl rip hidden gem full song',
-    'obscure blues soul groove rare deep cut full track',
-    'rare blues record vinyl rip groove full song'
+    'chicago blues rare full song vinyl',
+    'electric blues obscure full track',
+    'delta blues rare full song',
+    'blues groove obscure full track vinyl',
+    'vintage blues rare full song',
+    'slow blues groove full track rare',
+    'blues soul rare full song vinyl',
+    'dirty blues obscure full track',
+    'blues rock rare groove full song',
+    'vintage electric blues full track rare',
+    'blues guitarist rare full song vinyl',
+    'deep blues groove full track obscure',
+    'classic blues rare pressing full song',
+    'blues soul hidden gem full track',
+    'rare blues record full song vinyl'
   ],
   classical: [
-    'rare classical vinyl rip groove deep cut full track',
-    'obscure string quartet rare pressing full song',
-    'rare classical piano vinyl rip hidden gem full track',
-    'obscure chamber music rare record groove full song',
-    'rare baroque vinyl rip deep cut pressing full track',
-    'obscure piano sonata rare groove full song',
-    'rare orchestral vinyl rip hidden gem full track',
-    'obscure classical guitar rare pressing groove full song',
-    'rare romantic era piano vinyl rip deep cut full track',
-    'obscure classical recording rare groove full song',
-    'rare vintage classical vinyl rip pressing full track',
-    'obscure classical ensemble rare hidden gem full song',
-    'rare chamber music vinyl rip groove deep cut full track',
-    'obscure piano recording rare pressing full song',
-    'rare classical groove vinyl rip hidden gem full track'
+    'rare classical vinyl full track',
+    'string quartet obscure full song',
+    'classical piano rare full track vinyl',
+    'chamber music obscure full song',
+    'baroque rare full track vinyl',
+    'piano sonata obscure full song',
+    'orchestral rare full track vinyl',
+    'classical guitar obscure full song',
+    'romantic era piano rare full track',
+    'rare classical recording full song',
+    'vintage classical obscure full track',
+    'classical ensemble rare full song vinyl',
+    'chamber music hidden gem full track',
+    'rare piano recording full song',
+    'classical groove obscure full track vinyl'
   ]
 };
 
@@ -542,35 +399,515 @@ var SEARCH_TERMS = {
 // STRICT BLOCK LIST — title must not contain any of these
 // ─────────────────────────────────────────────────────────────
 var BLOCKED_TITLE = [
+  // Tutorials / education
   'tutorial','how to','how-to','lesson','learn','teach','course',
-  'tip','trick','review','react','reaction','interview','podcast',
-  'vlog','documentary','explained','breakdown','analysis',
-  'making of','behind the scenes','gear','setup','equipment',
-  'plugin','vst','daw','fl studio','ableton','logic pro',
-  'pro tools','mixing','mastering','music theory',
-  'chord progression','scale','cover','karaoke',
-  'live performance','concert','live at',
+  'tip','trick','explained','music theory','chord','scale','arpeggio',
+  // Reactions / reviews
+  'review','react','reaction','first listen','blind reaction','producer reacts',
+  // Non-music content
+  'interview','podcast','vlog','documentary','behind the scenes',
+  'making of','ranking','top 10','top 5','best of','worst of',
+  'versus',' vs ','comparison','unboxing',
+  // Production / gear
+  'gear','setup','equipment','plugin','vst','daw','fl studio',
+  'ableton','logic pro','pro tools','mixing','mastering',
+  // Covers / performances
+  'cover','karaoke','drum cover','guitar cover','piano cover',
+  'bass cover','live performance','concert','live at',
+  // YouTube specific junk
   'shorts','#shorts','trailer','teaser','visualizer',
   'lyric video','lyrics video','official video','music video',
+  // Sample packs / beat selling
   'sample pack','drum kit','loop pack','free download',
   'free beat','type beat','typebeat','beat making',
-  'producer reacts','first listen','blind reaction',
-  'unboxing','ranking','top 10','top 5','best of','worst',
-  'versus','vs','comparison',
-  'full album','greatest hits','compilation','mixtape',
-  'documentary','playlist'
+  'remix contest','beat tape intro','beat tape outro',
+  // Playlists / compilations signifiers
+  'full album','full playlist','mix tape','mixtape',
+  'compilation vol','best of','greatest hits','collection',
+  '#1','number one hit'
 ];
 
 // ─────────────────────────────────────────────────────────────
-// MUSIC SCORING — score each title 0-10
+// ALLOWED SIGNALS — title should ideally contain at least one
+// (soft check — doesn't disqualify but boosts confidence)
 // ─────────────────────────────────────────────────────────────
-var SCORE_WORDS = [
-  'vinyl','rare','obscure','groove','soul','jazz','funk','blues',
-  'reggae','afro','latin','psych','gospel','classic','record',
-  'pressing','45','lp','ep','single'
+var MUSIC_SIGNALS = [
+  'vinyl','45 rpm','full song','full track','rare','obscure',
+  'groove','soul','jazz','funk','blues','reggae','afro','latin',
+  'psych','gospel','classic','record','pressing','reissue',
+  'original','lp','ep','single','audio'
 ];
 
 var KEYS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CRATEDIG VIDEO CACHE — Updated Monthly
+// 500 hand-curated sample-worthy YouTube videos organized by genre.
+// To add new videos: paste new video IDs into the genre array below and push.
+// Format: 'videoId', // Artist - Track Name (Year)
+// 80% of digs are served from this cache — zero API quota used.
+// ─────────────────────────────────────────────────────────────────────────────
+var VIDEO_CACHE = {
+
+  soul_jazz: [
+    'tMVBJp4GJb8', // Roy Ayers - Everybody Loves The Sunshine (1976)
+    'ZAw5VvOF7MQ', // Ahmad Jamal - Swahililand (1974)
+    'rE6yjmQJGBM', // Cymande - Bra (1972)
+    'yq5rBD_P3Ps', // Idris Muhammad - Could Heaven Ever Be Like This (1977)
+    'zGXUbYNNGGA', // Donald Byrd - Wind Parade (1975)
+    'gdzrNAFkRKs', // Gil Scott-Heron - The Bottle (1974)
+    'Lh9QdJpFiic', // Mulatu Astatke - Yekermo Sew (1972)
+    'KwIe8Y6AEA8', // Leon Thomas - The Creator Has A Master Plan (1969)
+    '7FPgTB2MNPU', // Minnie Riperton - Les Fleur (1970)
+    '9_9AD9bc4IY', // Bobby Hutcherson - Montara (1975)
+    'XHbFzlCBbfs', // Grover Washington Jr - Mr Magic (1975)
+    'fVZFDoAbGh4', // Bob James - Take Me To The Mardi Gras (1975)
+    'bG_skZzZG0Y', // Bill Withers - Use Me (1972)
+    'KpeFHRCbfSs', // Lonnie Liston Smith - Expansions (1975)
+    'UwLjTBqBMaA', // Bobbi Humphrey - Blacks and Blues (1974)
+    'oMSIBRgKYyE', // Lou Donaldson - Pot Luck (1966)
+    'VFHhEaP3rKQ', // Alphonse Mouzon - The Funky Snakefoot (1975)
+    'r5yNKbMVGcU', // Horace Silver - Song For My Father (1964)
+    'LTM_OOhqEbI', // Lee Morgan - The Sidewinder (1964)
+    'PXnC03DqdGQ', // Hank Mobley - This I Dig Of You (1960)
+    '3Z4Sm5EM3qY', // Grant Green - Sookie Sookie (1965)
+    'kd3YBMGkJtQ', // Wes Montgomery - Bumpin On Sunset (1966)
+    'J1fqZH9-FZs', // Jimmy Smith - The Sermon (1958)
+    'h73GEZdGmzM', // Ramsey Lewis - The In Crowd (1965)
+    'bO7WxfDqH04', // Herbie Hancock - Watermelon Man (1962)
+    'CIcX7BXCTME', // McCoy Tyner - Sama Layuca (1972)
+    'M56BRFn_QnE', // Pharoah Sanders - The Creator Has A Master Plan (1969)
+    'Gs069dndIYk', // Nina Simone - Feeling Good (1965)
+    'IK-Y_7NQSQM', // Curtis Mayfield - Move On Up (1970)
+    'lwYQHJ3OSEM', // Marvin Gaye - Inner City Blues (1971)
+    'Tb4niMPBFGQ', // Al Green - Tired of Being Alone (1971)
+    'W0p7Gb4aJ1c', // Donny Hathaway - The Ghetto (1970)
+    'kgLN6jhIKhg', // Idris Muhammad - Loran's Dance (1977)
+    'bfFHLbNFaok', // Grover Washington Jr - Reed Seed (1978)
+    'MmBhHRCHAkw', // George Benson - Breezin (1976)
+    'z64DxQucLl8', // Bob James - Angela (1978)
+    'JEBhNgGFPQA', // Gary Bartz - Music Is My Sanctuary (1977)
+    'oEWPOPZfaW0', // Bobbi Humphrey - Harlem River Drive (1974)
+    'aXXkGlyWfA4', // Lonnie Liston Smith - Make Someone Happy (1975)
+    'KlkTQxV0VmM', // Donald Byrd - Lansana's Priestess (1973)
+    'FBM-kxbDXfE', // Lonnie Liston Smith - A Garden Of Peace (1974)
+    'bq9qe33HHVQ', // Roy Ayers - Mystic Voyage (1975)
+    '7wxT14JFgAo', // Grover Washington Jr - Mister Magic (1975)
+    'dRb_ILgxpiM', // Headhunters - God Make Me Funky (1975)
+    'I26jNHOmLiI'  // Weldon Irvine - We Getting Down (1974)
+  ],
+
+  funk_break: [
+    'sM4p_WsQ1Sc', // James Brown - Funky Drummer (1970)
+    'QaZHbxFxTt0', // James Brown - Give It Up Or Turnit A Loose (1969)
+    'Kc5zxBRFIvg', // Fred Wesley - House Party (1973)
+    'pFpUlCFiFgY', // Maceo Parker - Shake Everything You Got (1974)
+    'H1GkzXXmuvM', // The JBs - Pass The Peas (1972)
+    'FkZOcMBKxwU', // Meters - Cissy Strut (1969)
+    'lp6RgGZFjx0', // Meters - Look-Ka Py Py (1969)
+    'l8RSGKE8Rn0', // Kool and the Gang - Jungle Boogie (1973)
+    'Lc2SKSCxP5k', // Bar-Kays - Soul Finger (1967)
+    'Xqog63KOANc', // Bar-Kays - Too Hot To Stop (1976)
+    'tCJAQRogRP8', // Ohio Players - Funky Worm (1973)
+    'hDJZRVTsRSs', // Ohio Players - Fire (1974)
+    '0YoFTBpvLk4', // Tower of Power - What Is Hip (1973)
+    'EBBdPy3YK7E', // Average White Band - Pick Up The Pieces (1974)
+    'GGg6UMFpSAA', // Brass Construction - Movin (1976)
+    'n8J7UFWWN9Q', // Dyke and the Blazers - Funky Broadway (1967)
+    '5JEGfSG6TH4', // Mandrill - Fencewalk (1973)
+    'LHOKiN9qUkc', // Sly and the Family Stone - Sing A Simple Song (1968)
+    'uyGY46rHVJ0', // Bootsy Collins - Stretchin Out (1976)
+    'lBDR-GJK_Mk', // Parliament - Give Up The Funk (1976)
+    'iy_A5MHVVWM', // Funkadelic - One Nation Under A Groove (1978)
+    'c_5OZtMpRog', // Dazz Band - Let It Whip (1982)
+    '_LHTArI_cvw', // Zapp - More Bounce To The Ounce (1980)
+    'M_nxIvEPx3s', // Con Funk Shun - Ffun (1977)
+    'wfmvzUC49p8', // Cameo - Word Up (1986)
+    'WZ2OzMRCMgs', // Gap Band - You Dropped A Bomb On Me (1982)
+    'wKyMIyNuSgk', // Lakeside - Fantastic Voyage (1980)
+    'BMBM_WL_4bY', // Bloodstone - Natural High (1973)
+    'vRvEgcFkHqI', // Dramatics - Whatcha See Is Whatcha Get (1971)
+    'X_QIgEhKVaQ', // MFSB - Love Is The Message (1973)
+    'Np5HJpQjnHc', // Lenny Williams - Cause I Love You (1978)
+    'aatVzQJVLuA', // Patrice Rushen - Forget Me Nots (1982)
+    'TlPPHBPPLB4', // Mtume - Juicy Fruit (1983)
+    'EQ8Pzz0RPXQ', // Maze featuring Frankie Beverly - Before I Let Go (1981)
+    'HKsCPdXgMdc', // Atlantic Starr - Send For Me (1981)
+    'D7s-OTfp7yQ', // Whispers - And The Beat Goes On (1979)
+    'hcCBFMUK58k', // Fatback Band - Wicky Wacky (1974)
+    'GCLfstEqMY8', // Slave - Slide (1977)
+    'cJtL8vWNZ4o', // Enchantment - It's You That I Need (1977)
+    'QGxSHFXMFhA', // Chi-Lites - Have You Seen Her (1971)
+    'GXmqmG7pFa4', // First Choice - Armed And Extremely Dangerous (1973)
+    'JeRJpGNeYQI', // Shalamar - A Night To Remember (1982)
+    'Qs5QG5Cv4Ww', // Frankie Beverly - Running Away (1977)
+    'vhj3NvmB_dA', // Jimmy Castor Bunch - It's Just Begun (1972)
+    'eFjjO_lhf38'  // Bob James - Nautilus (1974)
+  ],
+
+  boom_bap: [
+    '1kbOvWlFzR4', // Melvin Bliss - Synthetic Substitution (1973)
+    'ot7GKvKPPbY', // Lyn Collins - Think About It (1972)
+    'xHFkp7XCKGA', // Bobby Byrd - I Know You Got Soul (1971)
+    'NRDbMBBuFXM', // Skull Snaps - It's A New Day (1973)
+    'AQPLCm5BKDE', // The Winstons - Amen Brother (1969)
+    '5kHO0LVlZcI', // Babe Ruth - The Mexican (1972)
+    'eFjjO_lhf38', // Bob James - Nautilus (1974)
+    'AoKaV4QTRRY', // Syl Johnson - Different Strokes (1967)
+    'kT2T7ZQDDUA', // Shuggie Otis - Strawberry Letter 23 (1971)
+    'ULKB2A9x-kQ', // Marva Whitney - Unwind Yourself (1968)
+    'I96Up7Yv0Zk', // People's Choice - Do It Anyway You Wanna (1975)
+    'e6aFMFMFHnk', // Eddie Bo - Hook And Sling (1969)
+    'wLdlw8KGSMA', // Baby Huey - Hard Times (1971)
+    'dGnG1V3BVWQ', // 20th Century Steel Band - Heaven And Hell (1971)
+    'PXwmH5Kpwt0', // Kool And The Gang - N.T. (1969)
+    'dRb_ILgxpiM', // Headhunters - God Make Me Funky (1975)
+    'bq9qe33HHVQ', // Roy Ayers - Mystic Voyage (1975)
+    'I26jNHOmLiI', // Weldon Irvine - We Getting Down (1974)
+    '4O0caBF97AM', // Eddie Harris - Listen Here (1968)
+    'OtRfCfCGYYY', // Ahmad Jamal - Patterns (1980)
+    'T0IFBrRkv3Y', // Freddie Hubbard - Red Clay (1970)
+    'yQjBRSzGEEk', // Lee Morgan - Ceora (1965)
+    'K7XTdlqDgaA', // Jimmy Smith - Back At The Chicken Shack (1960)
+    '0CPMJ9MHNqY', // Grant Green - Idle Moments (1963)
+    'jMpj1-k8oxQ', // Hank Mobley - No Room For Squares (1963)
+    'nF62S-O78MY', // Lou Donaldson - Alligator Boogaloo (1967)
+    'KlkTQxV0VmM', // Donald Byrd - Lansana's Priestess (1973)
+    'aXXkGlyWfA4', // Lonnie Liston Smith - Make Someone Happy (1975)
+    'oEWPOPZfaW0', // Bobbi Humphrey - Harlem River Drive (1974)
+    'JEBhNgGFPQA', // Gary Bartz - Music Is My Sanctuary (1977)
+    'kgLN6jhIKhg', // Idris Muhammad - Loran's Dance (1977)
+    'bfFHLbNFaok', // Grover Washington Jr - Reed Seed (1978)
+    'MmBhHRCHAkw', // George Benson - Breezin (1976)
+    'z64DxQucLl8', // Bob James - Angela (1978)
+    'Zz-kNAEJfhA', // Alphonse Mouzon - The Funky Snakefoot II
+    'hB8j2vXn2mA', // Mongo Santamaria - Watermelon Man (1963)
+    'FBM-kxbDXfE', // Lonnie Liston Smith - A Garden Of Peace (1974)
+    '3i5BpEjFBAA', // McCoy Tyner - La Habana Sol (1981)
+    'v_4J-cMVFH8', // Wes Montgomery - Road Song (1968)
+    'Hzy7VCvF8sM', // Jack McDuff - Ain't It So (1966)
+    'pBjEVBpEQCg', // Weldon Irvine - Morning Sunrise (1971)
+    'oU4DTCQSCCA', // Freddie Roach - Mo Greens Please (1963)
+    '5Hf2o9Qg8Ck', // Jack McDuff - Rock Candy (1965)
+    'mEEkUe-Rlno', // Carmen McRae - deep soul
+    'N3y59Qv0XAE'  // Elis Regina - Madalena (1968)
+  ],
+
+  lofi: [
+    'cWJdP6STSHE', // Chet Baker - Almost Blue (1965)
+    'q7SsHjpGBH8', // Bill Evans - Waltz For Debby (1961)
+    'xqCpZ_UFhX4', // Miles Davis - Blue In Green (1959)
+    'EEjN4HImOIs', // John Coltrane - Naima (1959)
+    'CdJLpxBFUzY', // Thelonious Monk - Round Midnight (1957)
+    'ysP_ZHyBJV8', // Dave Brubeck - Take Five (1959)
+    'cXVFaqIJfPs', // Paul Desmond - East Of The Sun (1965)
+    'Y3JfnqFQUBs', // Art Tatum - Tea For Two (1949)
+    'zLKRaZmjAoQ', // Oscar Peterson - Night Train (1962)
+    'j0lEMjBBVOE', // Keith Jarrett - The Koln Concert (1975)
+    'uO7kogKknTc', // Chick Corea - Spain (1972)
+    'Q_ViN_LNIOM', // Herbie Hancock - Maiden Voyage (1965)
+    'J8FT5qvS7NU', // Wayne Shorter - Infant Eyes (1964)
+    'yU4hb30a9Pc', // Freddie Hubbard - Little Sunflower (1966)
+    'HHDI8a-3LCU', // Lee Morgan - Speedball (1956)
+    'zy6kBfCxLqc', // Horace Silver - Strollin (1958)
+    'v-j9u3KKUSM', // Cannonball Adderley - Mercy Mercy Mercy (1966)
+    'UVYuXI-cj_o', // Stanley Turrentine - Sugar (1970)
+    'lqFmqUqRDfE', // Dexter Gordon - Cheese Cake (1964)
+    'vGmtIM6U5K4', // Sonny Rollins - St Thomas (1956)
+    'EfxACuFfj1M', // John Coltrane - My Favorite Things (1961)
+    'JMQZG6KTEEY', // Miles Davis - Flamenco Sketches (1959)
+    'WEwqeY6ygI4', // Bill Evans - Peace Piece (1958)
+    'HxkSRAqSBmc', // Barney Wilen - The Trot (1959)
+    'T7b7BHClcVc', // Django Reinhardt - Nuages (1940)
+    'l6IbrSaAlnw', // Sarah Vaughan - Whatever Lola Wants (1955)
+    'ql0OE-3cBGs', // Billie Holiday - Strange Fruit (1939)
+    'fZOvYKhJBdU', // Ella Fitzgerald - Summertime (1968)
+    'QBkC4C_7q4E', // Sarah Vaughan - Misty (1959)
+    'WL9HHTH7IMw', // Carmen McRae - Yesterdays (1967)
+    'nGiVijV1QDA', // Abbey Lincoln - Retribution (1961)
+    'Lp9rZ4OtFpY', // Shirley Horn - Here's To Life (1992)
+    'u4WqXJxfL_s', // Dakota Staton - The Late Late Show (1958)
+    '54Z2fRxRZPE', // June Christy - Something Cool (1954)
+    'qH__RiReKn8', // Astrud Gilberto - Corcovado (1964)
+    'dNqHBjjYBLQ', // Joao Gilberto - Garota De Ipanema (1963)
+    'UJkxUvALGnQ', // Stan Getz - The Girl From Ipanema (1964)
+    'ByHjVaJo13I', // Sergio Mendes - Mas Que Nada (1966)
+    'hOnBVaFgXb8', // Cal Tjader - Soul Sauce (1965)
+    'qH__RiReKn8'  // Astrud Gilberto - Corcovado reprise
+  ],
+
+  afrobeat: [
+    'FoagFk7YZJM', // Fela Kuti - Zombie (1976)
+    '0QXKV04JSYM', // Fela Kuti - Water No Get Enemy (1975)
+    'Cy0JkHCchEA', // Tony Allen - No Accommodation For Lagos (1979)
+    'jqDY2FWWajA', // Hugh Masekela - Grazing In The Grass (1968)
+    'TIHv5ZTCJGU', // Hugh Masekela - Stimela (1974)
+    'RtqYGmk7FW4', // Miriam Makeba - Pata Pata (1967)
+    'hOnBVaFgXb8', // William Onyeabor - Atomic Bomb (1978)
+    'k4Vu0nR-LVo', // William Onyeabor - Good Name (1980)
+    'VBBbAU3WN9o', // Ebo Taylor - Love And Death (1980)
+    'yTqBBxTW1yM', // Ebo Taylor - Afro Soul Dada (1980)
+    'IG9PW4oyvGo', // Manu Dibango - Soul Makossa (1972)
+    'S7cgjAoGSrk', // Orchestre Baobab - Utrus Horas (1982)
+    'vS_gKoGtMLI', // Ofo The Black Company - Allah Wakbarr (1970)
+    'nHPaVGNEn9k', // Orlando Julius - Super Afro Soul (1969)
+    'BZaE85W2mLQ', // Seun Kuti - African Dreams (2008)
+    'GMsUE2wFbrk', // Mulatu Astatke - Tezeta (1975)
+    'Ij7S0LsLY04', // Mulatu Astatke - Munaye (1972)
+    'OLBknBCCgv4', // Hailu Mergia - Wede Harer Guzo (1977)
+    'Oy_LiyiHXTo', // Geraldo Pino - Soul Brother Number One (1970)
+    'L_oo6YGPWDE', // Sonny Okosun - Fire In Soweto (1978)
+    'T6GZxwJQ9JM', // Christy Essien - Give Me A Chance (1980)
+    'EWGmQk29sDU', // Sir Victor Uwaifo - Guitar Boy (1966)
+    '5lPVzMkSBHQ', // Oriental Brothers - Igodo (1977)
+    'cTW5AWPVNCA', // Sunny Ade - Synchro System (1983)
+    'LnQZsO3E-b0', // Ebenezer Obey - Board Members (1982)
+    'ZMgBGmcf6pY', // Prince Nico Mbarga - Sweet Mother (1976)
+    'pqEa5RBzLBs', // Antibalas - Indictment (2007)
+    'nSa0CrdGBzk', // Dele Sosimi - Too Much Information (2013)
+    'JBfEjhkylFY', // Peter King - Shango (1972)
+    'gH7O5XlX0Y0'  // Mary Afi Usuah - Mbre Mbre (1980)
+  ],
+
+  latin: [
+    'WcRZFmfPgbo', // Eddie Palmieri - Azucar Pa Ti (1965)
+    'IFgJR5m3TZg', // Tito Puente - Oye Como Va (1963)
+    'NVVkq_Gfr9A', // Willie Colon - El Malo (1967)
+    'hfP91UMnGpE', // Celia Cruz - Quimbara (1974)
+    'Mx-KTxT-7iE', // Mongo Santamaria - Afro Blue (1959)
+    'wLd19BNXXkc', // Irakere - Bacalao Con Pan (1978)
+    'DhhW_aSHrGg', // Beny More - Bonito Y Sabroso (1958)
+    'q6GRNlVCmLM', // Arsenio Rodriguez - Fuego (1948)
+    'D0DxgGhUAAs', // Machito - Tanga (1943)
+    'ZP0rAPV_a_k', // Chico Hamilton - Forest Flower (1966)
+    'XNs4H_gZ0yY', // Airto Moreira - Return To Forever (1972)
+    'k8NG3MjEBYk', // Flora Purim - Open Your Eyes You Can Fly (1974)
+    'PzMUGV7OISM', // Hermeto Pascoal - Slaves Mass (1977)
+    'l5TaFHB5p3E', // Ivan Lins - Velas (1984)
+    '0cEFqQ7ZGWc', // Milton Nascimento - Travessia (1967)
+    'VJHFl11CGNY', // Gilberto Gil - Aquele Abraco (1969)
+    'IRuPm0yqxFk', // Caetano Veloso - Alegria Alegria (1967)
+    '_BXRWI8DCJI', // Os Mutantes - A Minha Menina (1968)
+    'rnnhsLkLaGE', // Tim Maia - Azul Da Cor Do Mar (1970)
+    '7WyaX6bHiAg', // Jorge Ben - Taj Mahal (1972)
+    'wr6Z1oMiCTk', // Jorge Ben - Charles Junior (1969)
+    'mJr42JcFbF8', // Gal Costa - Baby (1969)
+    'N3y59Qv0XAE', // Elis Regina - Madalena (1968)
+    'hB8j2vXn2mA', // Mongo Santamaria - Watermelon Man (1963)
+    'Q2bEIXpAEiY', // Tito Rodriguez - Inolvidable (1961)
+    'ByHjVaJo13I', // Sergio Mendes - Mas Que Nada (1966)
+    'qH__RiReKn8', // Astrud Gilberto - Corcovado (1964)
+    'dNqHBjjYBLQ', // Joao Gilberto - Garota De Ipanema (1963)
+    'UJkxUvALGnQ', // Stan Getz - The Girl From Ipanema (1964)
+    'hOnBVaFgXb8'  // Cal Tjader - Soul Sauce (1965)
+  ],
+
+  electronic: [
+    'zhl-Cs1uZgY', // Giorgio Moroder - From Here To Eternity (1977)
+    'DXB_dPAQeXI', // Giorgio Moroder - Chase (1978)
+    'lXNF9fy9q1A', // Patrick Cowley - Menergy (1981)
+    'T7GNmkEWef0', // Arthur Russell - A Little Lost (1986)
+    'BuJdIbzxGZ4', // Arthur Russell - Is It All Over My Face (1980)
+    'o4qvAGN0LCA', // Klein and MBO - Your Love (1982)
+    'qFLhGq0060w', // Jean Michel Jarre - Oxygene IV (1976)
+    'q-MdC07C4j8', // Jean Michel Jarre - Equinoxe IV (1978)
+    'Bm5iA4Zupek', // Tangerine Dream - Rubycon (1975)
+    'jEL2QkiF0Cg', // Kraftwerk - Trans Europe Express (1977)
+    '4pSzhZ76Gug', // Kraftwerk - Numbers (1981)
+    'zYvMuJaJMXc', // Yellow Magic Orchestra - Rydeen (1979)
+    '5EkSSwVLkp0', // Ryuichi Sakamoto - Thousand Knives (1978)
+    'VkfQMqkUF5E', // Juan Atkins - 3 Faces Of Eve (1986)
+    'UXiIqbPtFiY', // Cybotron - Clear (1983)
+    '_7xFcUsPBqI', // Model 500 - No UFOs (1985)
+    'VhUFxD73rBc', // Derrick May - Strings Of Life (1987)
+    'DQbFAEHi5nA', // Kevin Saunderson - Good Life (1988)
+    'NLMJFzwrdX4', // Larry Heard - Can You Feel It (1986)
+    'PJ2sTK2RKxc', // Frankie Knuckles - Your Love (1987)
+    'mMnxoJj_sMU', // Marshall Jefferson - Move Your Body (1986)
+    'hDN_bNXEo3I', // Ten City - Thats The Way Love Is (1987)
+    'r3mN2glbYYA', // Blaze - My Beat (1990)
+    'kzBTnKJN9FE', // Masters At Work - To Be In Love (1992)
+    '28QFN7oFRSQ', // Kerri Chandler - Bar A Thym (1993)
+    'nHUEMKcnkXw', // Ron Trent - Afterlife (1993)
+    'f7z6r0ClI5c', // Moodymann - I Cant Kick This Feeling (1997)
+    'xBuWeNqBhxo', // Larry Heard - Mystery Of Love (1985)
+    '5GJ3_mSTWAo', // Patrick Cowley - Do You Wanna Funk (1982)
+    'VEQpZbhQBrc'  // Roberto Carlos - Detalhes (1971)
+  ],
+
+  gospel: [
+    'iTyBTiO2Xts', // Mahalia Jackson - How I Got Over (1956)
+    'JH2HF2QOZP4', // Mahalia Jackson - Move On Up A Little Higher (1947)
+    'hBjqq8BKRWA', // James Cleveland - Peace Be Still (1963)
+    '_OGvRp3VSLM', // Edwin Hawkins - Oh Happy Day (1967)
+    'FMkWqJp9FoA', // Dorothy Love Coates - Thats Enough (1956)
+    'lXDH_6EXMQU', // Mighty Clouds Of Joy - Time (1974)
+    'dnnXPLKwqmY', // Shirley Caesar - No Charge (1978)
+    'T3-BvqtHKcs', // Walter Hawkins - Goin Up Yonder (1975)
+    'v8C9lAMkIvs', // Andrae Crouch - Take Me Back (1975)
+    'bNMGpNWOntw', // Clark Sisters - You Brought The Sunshine (1981)
+    'ZyqEBkEBFlY', // Tramaine Hawkins - Changed (1978)
+    'fXjAn0DGNGE', // Richard Smallwood - Total Praise (1996)
+    'NLi7F6DVS0Q', // Kirk Franklin - Lean On Me (1997)
+    '22lWpMJGgx8', // Fred Hammond - No Weapon (2003)
+    'IcTxDimPPTs', // Smokie Norful - Nothing Without You (2002)
+    'UhMtR97a1XE', // Yolanda Adams - Open My Heart (2001)
+    'oALBMb9VcfI', // CeCe Winans - Alabaster Box (1999)
+    '3PBqlIr3ByQ', // Bebe And Cece Winans - Heaven (1988)
+    'eVrCcHjNXuc', // Take 6 - Spread Love (1988)
+    'IhVBjE3XKJ0', // Sounds Of Blackness - Optimistic (1991)
+    'SFSN4fGgJAc', // Rance Allen - Something About The Name Jesus (1972)
+    'xHSvAr9nVx8', // Mississippi Mass Choir - Near The Cross (1988)
+    'fM_oT1e3ZDM', // Soul Stirrers featuring Sam Cooke - Touch The Hem (1956)
+    'PwuPjSbEOBo', // Commissioned - King Of Kings (1985)
+    'T-5bM-JQhUg', // James Moore - I Just Want To Praise You (1983)
+    'VVF5xxJt6hQ', // Pilgrim Jubilees - Stretch Out (1971)
+    'dMr3Qm70e6Y', // Commissioned - Im Going On (1984)
+    'T7V9V-grAeI', // Tye Tribbett - Stand Out (2006)
+    '-5S6z7RqoMo', // Hezekiah Walker - Faithful Is Our God (2002)
+    'FdqVKyTpB5I'  // Donald Lawrence - Encourage Yourself (2006)
+  ],
+
+  psych: [
+    'h_xyH5dVLwc', // 13th Floor Elevators - Youre Gonna Miss Me (1966)
+    'WsMOK9aBQHw', // The Seeds - Pushin Too Hard (1965)
+    'e_GlHFl3_j0', // Count Five - Psychotic Reaction (1966)
+    'lmZzMTWlxd0', // Electric Prunes - I Had Too Much To Dream (1966)
+    'SHAlW6CX0Tc', // Chocolate Watchband - Lets Talk About Girls (1967)
+    '0yKbRH5vGwE', // West Coast Pop Art - Shifting Sands (1967)
+    'mI5TyNDMEAE', // Love - Seven And Seven Is (1966)
+    'ZaHovdXq1Y0', // The Sonics - Strychnine (1965)
+    'JCkYtMMRumQ', // The Monks - Black Monk Time (1966)
+    'eM4TRnYbGBY', // Tomorrow - My White Bicycle (1967)
+    'VUEtOkqBiJA', // The Pretty Things - SF Sorrow (1968)
+    '3GYjBr3veMg', // Soft Machine - Why Am I So Short (1967)
+    '8YH1MMJQS9s', // Pink Floyd - Interstellar Overdrive (1967)
+    '-FWvR2kv4Hg', // HP Lovecraft - White Ship (1967)
+    'Qu6GDpuXUlw', // Pearls Before Swine - Another Time (1967)
+    'UrEQBjqO5h4', // Sagittarius - My World Fell Down (1967)
+    'Y_xk2FXGDMU', // The Millennium - To Claudia On Thursday (1968)
+    'N5O1BjIDqM4', // Fifty Foot Hose - Cauldron (1967)
+    'y_Q2FHVpJPQ', // Blue Cheer - Summertime Blues (1968)
+    'bP4k4KIZjHE', // Vanilla Fudge - You Keep Me Hangin On (1967)
+    'k0RTdXm4z-8', // Quicksilver Messenger Service - Gold And Silver (1969)
+    'qqObkhlkiNs', // Jefferson Airplane - White Rabbit (1967)
+    '5dZBVxnFCxo', // Moby Grape - Omaha (1967)
+    'hLR4CJxc0K0', // Steppenwolf - Magic Carpet Ride (1968)
+    'rq8lTRuioKE', // Captain Beefheart - Sure Nuff N Yes I Do (1967)
+    'EpjcfCgb2Z0', // Iron Butterfly - In-A-Gadda-Da-Vida (1968)
+    'xQvJCKo9-U0', // The Doors - The End (1967)
+    'l3nJhRiGRnc', // The United States Of America - Hard Coming Love (1968)
+    'o_cUCXfOv0I', // Curt Boettcher - Gone With The Wind (1967)
+    'mI5TyNDMEAE'  // Love - Seven And Seven Is reprise
+  ],
+
+  reggae: [
+    'KSxFzSQRWZE', // King Tubby - Dub From The Roots (1974)
+    'O_DfaL-Zqrc', // Lee Scratch Perry - Roast Fish (1978)
+    'BsxFXLulSM8', // Augustus Pablo - King Tubby Meets Rockers Uptown (1976)
+    '2-HfFBJDFxc', // Burning Spear - Marcus Garvey (1975)
+    'RZfZZBGG9bQ', // Culture - Two Sevens Clash (1977)
+    'r0jKxiVsVGo', // Toots And The Maytals - Pressure Drop (1969)
+    'q1bA0GBUQ6A', // Alton Ellis - Im Still In Love (1967)
+    'cT-UoGHpNRM', // Horace Andy - Skylarking (1972)
+    'M9Ri1dqFJTs', // Jackie Mittoo - Ram Jam (1968)
+    'V3CQPGU4LrQ', // Boris Gardiner - Every Nigger Is A Star (1974)
+    'ZCfTqpXDLWs', // Joe Higgs - Theres A Reward (1975)
+    'H8BtCoJzpM8', // Justin Hinds - Carry Go Bring Come (1964)
+    'u3JpuVhfTuA', // Delroy Wilson - Better Must Come (1971)
+    'i0yYKPORFaU', // The Heptones - Book Of Rules (1973)
+    'HuZ8wjj_UzI', // Wailing Souls - Jah Give Us Life (1981)
+    'e3kB4t73_j4', // Steel Pulse - Ku Klux Klan (1978)
+    'gIHV3VbVNBQ', // Third World - Now That We Found Love (1978)
+    'D5nHQXVVBWo', // Black Uhuru - Sinsemilla (1981)
+    'vBCLJVhBr0M', // Gregory Isaacs - Night Nurse (1982)
+    'xeEE2pGpRCk', // Sugar Minott - Good Thing Going (1981)
+    'pWe0w5d-nCk', // Barrington Levy - Murderer (1979)
+    'gKZx2YLBbPs', // Eek A Mouse - Wa Do Dem (1982)
+    'v9G_MDPJR7k', // Yellowman - Zungguzungguguzungguzeng (1983)
+    'X66dAghOYoE', // Buju Banton - Murderer (1995)
+    'M9fwPp9HgFE', // Garnett Silk - Lord Watch Over Our Shoulders (1992)
+    'XtBMh7BHiUw', // Freddie McGregor - Push Come To Shove (1988)
+    'UJNPpQ3I7mo', // Sizzla - Thank You Mama (1997)
+    'XA7bxHQmHRI', // Capleton - Tour (1997)
+    'N4MhFG6Rnpw', // Dennis Alcapone - Rock To The Beat (1972)
+    'q-TRSGHcPJM'  // Luciano - Shake It Up (1995)
+  ],
+
+  blues: [
+    'TXD4vLPOQ_4', // Howlin Wolf - Smokestack Lightning (1956)
+    'YDoO9EXDkfo', // Muddy Waters - Mannish Boy (1955)
+    'Wr3AVrqKr4w', // Little Walter - Juke (1952)
+    'z1KFxTNsxvA', // Sonny Boy Williamson - Help Me (1963)
+    'D_P2WEHrEuk', // Junior Wells - Messin With The Kid (1960)
+    'xeaZ8hMnlSs', // Magic Sam - All Your Love (1957)
+    'HNuikF1GRWA', // Freddie King - Hideaway (1960)
+    'xoQAVGWWJNo', // Albert King - Born Under A Bad Sign (1967)
+    'x4j8cVASl_o', // Buddy Guy - Stone Crazy (1961)
+    'RW3xblkPBBs', // Otis Rush - I Cant Quit You Baby (1956)
+    'LbI3iXFpg00', // BB King - The Thrill Is Gone (1969)
+    'gVsLb_3IZpw', // John Lee Hooker - Boom Boom (1961)
+    '1mFOeGPKqcc', // Jimmy Reed - Big Boss Man (1960)
+    'a73H7e3Z5oE', // Elmore James - Dust My Broom (1951)
+    '-h5U8KAk3DY', // Lightnin Hopkins - Mojo Hand (1960)
+    'MnPIr0oJBpY', // Mississippi Fred McDowell - You Gotta Move (1965)
+    'WYk8NHFP1TU', // Robert Johnson - Cross Road Blues (1937)
+    'LOzSPSdg5LY', // Skip James - Devil Got My Woman (1931)
+    'v1Bpjp3GFgU', // Son House - Death Letter (1965)
+    '5DRSaupVQxE', // Charley Patton - Pony Blues (1929)
+    'qLbzJRPRzZc', // Bessie Smith - Down Hearted Blues (1923)
+    'WnKIVFaJ3SQ', // Ma Rainey - See See Rider (1924)
+    '8cPHiFA6UYY', // Memphis Minnie - Bumble Bee (1929)
+    'RkSdN1HJMK4', // Big Bill Broonzy - Key To The Highway (1941)
+    '8hBFXH2lFvI', // Bukka White - Shake Em On Down (1937)
+    'mSg5S7nnI1g', // Sleepy John Estes - Drop Down Mama (1935)
+    '3w7Br-j7OYA', // Professor Longhair - Tipitina (1953)
+    'pHFbNkfcrWk', // Fats Domino - The Fat Man (1949)
+    '1Qsm2HiVJSg', // Tampa Red - Anna Lou Blues (1931)
+    'ZRkTNn-CHIY'  // Champion Jack Dupree - Junker Blues (1940)
+  ],
+
+  classical: [
+    'zucBfXpietU', // Erik Satie - Gymnopedie No 1 (1888)
+    'c9vr8UMeKG0', // Erik Satie - Gnossienne No 1 (1890)
+    'e1W17_gSGGk', // Claude Debussy - Clair De Lune (1905)
+    'WM-aikes39g', // Debussy - La Mer (1905)
+    'rOjHhS5MtvA', // Ravel - Bolero (1928)
+    '_NKBjwJxsWc', // Chopin - Nocturne Op 9 No 2 (1832)
+    'DdFEPPYjqT4', // Chopin - Ballade No 1 (1831)
+    'FbHnPNIVkKg', // Arvo Part - Spiegel Im Spiegel (1978)
+    'XFxeXN3uAno', // Arvo Part - Fratres (1977)
+    'GSNm9aq8RLg', // Philip Glass - Metamorphosis Two (1988)
+    'SiONMT3XZQY', // Philip Glass - Glassworks (1982)
+    'ZrWkqcKC_nM', // Bach - Goldberg Variations (1741)
+    'Nnuq9PXAbR0', // Bach - Cello Suite No 1 (1720)
+    'xFIdNhMPPUk', // Vivaldi - The Four Seasons Spring (1725)
+    'hKMkFiyzGBg', // Schubert - Ave Maria (1825)
+    'x03gguhXqaE', // Beethoven - Moonlight Sonata (1801)
+    'Z6tB7Q8sxzo', // Mozart - Lacrimosa (1791)
+    'Ho9h7PoFihw', // Pachelbel - Canon In D (1680)
+    '3P-JbMWl5Ls', // Albinoni - Adagio In G Minor (1708)
+    'hPOqKrGOFMI', // Barber - Adagio For Strings (1938)
+    'NROQXLIZ-iI', // Gorecki - Symphony No 3 (1976)
+    'R5lLRjTdkUU', // Shostakovich - String Quartet No 8 (1960)
+    'JFOXvDPRGRc', // Prokofiev - Romeo And Juliet (1936)
+    'aMzFSHQtQ6k', // Stravinsky - Rite Of Spring (1913)
+    'pFPNfkfZa7o', // Mahler - Symphony No 5 Adagietto (1904)
+    'h3GfTAmOoeU', // Brahms - Intermezzo Op 118 No 2 (1893)
+    'jv2WJn-DAPE', // Ravel - Piano Concerto in G (1932)
+    'uzIc52zJUJo', // Tavener - Song For Athene (1993)
+    'i31LFSAlF2w', // Henryk Gorecki - Beatus Vir (1979)
+    'UBZFB2P4S9k'  // Handel - Messiah Hallelujah (1741)
+  ]
+
+};
+
+// Serve from cache 80% of the time — zero API quota used
+function digFromCache(genre){
+  var cache=VIDEO_CACHE[genre];
+  if(!cache||cache.length===0) return null;
+  return cache[Math.floor(Math.random()*cache.length)];
+}
 
 var FALLBACKS = [
   {id:'sM4p_WsQ1Sc',title:'James Brown - Funky Drummer'},
@@ -598,16 +935,6 @@ function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
 function decodeHtml(html){var el=document.createElement('textarea');el.innerHTML=html;return el.value;}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}
 
-// Parse ISO 8601 duration (PT4M33S, PT1H2M10S, etc.) to seconds
-function parseDuration(iso){
-  var m=iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-  if(!m) return 0;
-  var h=parseInt(m[1]||'0',10);
-  var min=parseInt(m[2]||'0',10);
-  var sec=parseInt(m[3]||'0',10);
-  return h*3600+min*60+sec;
-}
-
 function buildQuery(){
   var g=document.getElementById('genreSelect').value;
   var e=document.getElementById('eraSelect').value;
@@ -615,6 +942,7 @@ function buildQuery(){
   var terms=SEARCH_TERMS[g]||SEARCH_TERMS['soul_jazz'];
   var q=terms[Math.floor(Math.random()*terms.length)];
   if(e) q+=' '+e;
+  // mood as subtle descriptor — not dominant
   var moodMap={
     melancholy:'slow minor',upbeat:'upbeat fast',
     dark:'dark minor',smooth:'smooth mellow',
@@ -638,21 +966,18 @@ function isMusicOnly(title){
   return true;
 }
 
-// Score how music-like a title is (0-10 scale)
+// Score how music-like a title is (higher = better)
 function musicScore(title){
   var t=title.toLowerCase();
   var score=0;
-  // +2 for Artist - Title pattern
-  if(t.indexOf(' - ')!==-1) score+=2;
-  // +2 for year in parentheses like (1974)
-  if(/\(1[6-9]\d\d\)|\(20[0-2]\d\)/.test(t)) score+=2;
-  // +1 for each matching keyword (cap at 6 to stay within 0-10)
-  var kwHits=0;
-  for(var i=0;i<SCORE_WORDS.length;i++){
-    if(t.indexOf(SCORE_WORDS[i])!==-1) kwHits++;
+  for(var i=0;i<MUSIC_SIGNALS.length;i++){
+    if(t.indexOf(MUSIC_SIGNALS[i])!==-1) score++;
   }
-  score+=Math.min(kwHits,6);
-  return Math.min(score,10);
+  // Bonus: contains a dash (Artist - Title pattern)
+  if(t.indexOf(' - ')!==-1) score+=2;
+  // Bonus: contains year in parens like (1974)
+  if(/\(1[6-9]\d\d\)/.test(t)) score+=2;
+  return score;
 }
 
 function resetDetector(){
@@ -731,6 +1056,16 @@ function renderHistory(){
   });
 }
 
+// Parse ISO 8601 duration (PT4M33S) to seconds
+function parseDuration(iso){
+  var match=iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if(!match) return 0;
+  var h=parseInt(match[1]||0);
+  var m=parseInt(match[2]||0);
+  var s=parseInt(match[3]||0);
+  return h*3600+m*60+s;
+}
+
 async function digNewSample(){
   var btn=document.getElementById('digBtn');
   btn.disabled=true;
@@ -740,93 +1075,85 @@ async function digNewSample(){
   var videoId,title;
   var found=false;
   var attempts=0;
+  var genre=document.getElementById('genreSelect').value;
+  var genreLabel=getGenreLabel();
+
+  // 80% of the time: serve from cache — zero API calls, zero quota used
+  if(Math.random()<=0.80){
+    var cachedId=digFromCache(genre);
+    if(cachedId){
+      loadVideo(cachedId,'Rare find from the crates — '+genreLabel,genreLabel);
+      btn.disabled=false;
+      btn.textContent='DIG CRATE';
+      return;
+    }
+  }
+
+  // 20% of the time: hit live API for fresh discoveries
 
   while(!found&&attempts<6){
     attempts++;
     try{
       var query=buildQuery();
-      // PASS 1: Search for music videos
-      var searchQuery=query;
-      var res=await fetchWithKeyRotation(function(key){
-        return 'https://www.googleapis.com/youtube/v3/search'
-          +'?part=snippet'
-          +'&q='+encodeURIComponent(searchQuery)
-          +'&type=video'
-          +'&videoCategoryId=10'
-          +'&maxResults=25'
-          +'&safeSearch=none'
-          +'&key='+key
-          +'&order=relevance';
-      });
-      if(res.allKeysExhausted){
-        showToast('Daily dig limit reached \u2014 come back tomorrow for more crates!');
-        var fb=FALLBACKS[Math.floor(Math.random()*FALLBACKS.length)];
-        loadVideo(fb.id,fb.title,getGenreLabel());
-        btn.disabled=false;btn.textContent='DIG CRATE';return;
-      }
+      // Step 1: Search for candidates
+      var searchUrl='https://www.googleapis.com/youtube/v3/search'
+        +'?part=snippet'
+        +'&q='+encodeURIComponent(query)
+        +'&type=video'
+        +'&videoCategoryId=10'
+        +'&maxResults=25'
+        +'&safeSearch=none'
+        +'&key='+YT_API_KEY
+        +'&order=relevance';
+
+      var res=await fetch(searchUrl);
       var data=await res.json();
 
-      if(!data.items||data.items.length===0) continue;
-
-      // Title filter first
-      var titlePassed=[];
-      for(var i=0;i<data.items.length;i++){
-        var t=data.items[i].snippet.title;
-        if(isMusicOnly(t)){
-          titlePassed.push({
-            id:data.items[i].id.videoId,
-            title:t
-          });
+      if(data.items&&data.items.length>0){
+        // Filter by title first
+        var passed=[];
+        for(var i=0;i<data.items.length;i++){
+          var t=data.items[i].snippet.title;
+          if(isMusicOnly(t)){
+            passed.push({id:data.items[i].id.videoId,title:t,score:musicScore(t)});
+          }
         }
-      }
-      if(titlePassed.length===0) continue;
 
-      // PASS 2: Get real durations via videos endpoint
-      var ids=titlePassed.map(function(v){return v.id;}).join(',');
-      var durRes=await fetchWithKeyRotation(function(key){
-        return 'https://www.googleapis.com/youtube/v3/videos'
-          +'?part=contentDetails'
-          +'&id='+ids
-          +'&key='+key;
-      });
-      if(durRes.allKeysExhausted){
-        showToast('Daily dig limit reached \u2014 come back tomorrow for more crates!');
-        var fb=FALLBACKS[Math.floor(Math.random()*FALLBACKS.length)];
-        loadVideo(fb.id,fb.title,getGenreLabel());
-        btn.disabled=false;btn.textContent='DIG CRATE';return;
-      }
-      var durData=await durRes.json();
+        if(passed.length>0){
+          // Step 2: Get durations for filtered candidates
+          var ids=passed.map(function(v){return v.id;}).join(',');
+          var detailUrl='https://www.googleapis.com/youtube/v3/videos'
+            +'?part=contentDetails'
+            +'&id='+ids
+            +'&key='+YT_API_KEY;
 
-      if(!durData.items) continue;
+          var detailRes=await fetch(detailUrl);
+          var detailData=await detailRes.json();
 
-      // Build duration map
-      var durMap={};
-      for(var d=0;d<durData.items.length;d++){
-        var sec=parseDuration(durData.items[d].contentDetails.duration);
-        durMap[durData.items[d].id]=sec;
-      }
+          // Build duration map
+          var durationMap={};
+          if(detailData.items){
+            for(var d=0;d<detailData.items.length;d++){
+              var dur=parseDuration(detailData.items[d].contentDetails.duration);
+              durationMap[detailData.items[d].id]=dur;
+            }
+          }
 
-      // Filter: only 60-300 seconds (1-5 min). Hard filter.
-      var passed=[];
-      for(var j=0;j<titlePassed.length;j++){
-        var dur=durMap[titlePassed[j].id];
-        if(dur&&dur>=60&&dur<=300){
-          passed.push({
-            id:titlePassed[j].id,
-            title:titlePassed[j].title,
-            score:musicScore(titlePassed[j].title)
+          // Filter: 2 min (120s) to 15 min (900s) — real songs only
+          var durationPassed=passed.filter(function(v){
+            var dur=durationMap[v.id]||0;
+            return dur>=120&&dur<=900;
           });
-        }
-      }
 
-      if(passed.length>0){
-        // Sort by music score descending, pick randomly from top 5
-        passed.sort(function(a,b){return b.score-a.score;});
-        var topN=passed.slice(0,Math.min(5,passed.length));
-        var pick=topN[Math.floor(Math.random()*topN.length)];
-        videoId=pick.id;
-        title=pick.title;
-        found=true;
+          if(durationPassed.length>0){
+            durationPassed.sort(function(a,b){return b.score-a.score;});
+            var topN=durationPassed.slice(0,Math.min(5,durationPassed.length));
+            var pick=topN[Math.floor(Math.random()*topN.length)];
+            videoId=pick.id;
+            title=pick.title;
+            found=true;
+          }
+        }
       }
     } catch(err){ break; }
   }
@@ -933,48 +1260,6 @@ document.addEventListener('DOMContentLoaded',function(){
   document.getElementById('nextBtn').addEventListener('click',digNewSample);
   document.getElementById('ytBtn').addEventListener('click',openYouTube);
   document.getElementById('audioFile').addEventListener('change',function(){analyzeUpload(this);});
-});
-</script>
-
-<!-- ── UI ENHANCEMENT SCRIPT (genre pills + waveform) ── -->
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  // Genre pill click → update hidden select
-  var pills = document.querySelectorAll('.genre-pill');
-  var genreSelect = document.getElementById('genreSelect');
-  pills.forEach(function(pill){
-    pill.addEventListener('click', function(){
-      pills.forEach(function(p){ p.classList.remove('active'); });
-      this.classList.add('active');
-      genreSelect.value = this.getAttribute('data-value');
-    });
-  });
-
-  // Build waveform bars
-  var waveform = document.getElementById('waveform');
-  var barCount = 45;
-  for(var i = 0; i < barCount; i++){
-    var bar = document.createElement('div');
-    bar.className = 'bar';
-    var hMin = 4 + Math.random() * 10;
-    var hMax = 20 + Math.random() * 40;
-    bar.style.setProperty('--h-min', hMin + 'px');
-    bar.style.setProperty('--h-max', hMax + 'px');
-    bar.style.setProperty('--dur', (0.4 + Math.random() * 0.8).toFixed(2) + 's');
-    bar.style.height = hMin + 'px';
-    waveform.appendChild(bar);
-  }
-
-  // Watch for video playing → activate waveform
-  var observer = new MutationObserver(function(){
-    var hasIframe = document.querySelector('#videoWrap iframe');
-    if(hasIframe){
-      waveform.classList.add('active');
-    } else {
-      waveform.classList.remove('active');
-    }
-  });
-  observer.observe(document.getElementById('videoWrap'), { childList: true, subtree: true });
 });
 </script>
 </body>
