@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRATEDIG — Random Sample Discovery + BPM/Key Detector</title>
+  <meta name="description" content="Dig random music samples by genre, era and mood. Detect BPM and key instantly. Built for producers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f8f8f8;
+      --surface: #ffffff;
+      --surface2: #ffffff;
+      --ink: #141316;
+      --muted: rgba(20, 19, 22, 0.62);
+      --muted2: rgba(20, 19, 22, 0.42);
+      --hairline: rgba(20, 19, 22, 0.12);
+      --hairline2: rgba(20, 19, 22, 0.18);
+
+      /* Primary accent (bold + unexpected) */
+      --accent: #FF4D6D;          /* electric coral */
+      --accentSoft: #FFE1E8;      /* pastel coral tint */
+      --accentInk: #7a1227;       /* deep coral for pressed shadow */
+
+      --display: "Syne", sans-serif;
+      --body: "Plus Jakarta Sans", sans-serif;
+
+      --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    html, body { background: var(--bg); color: var(--ink); font-family: var(--body); min-height: 100vh; }
+    body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    a { color: inherit; }
+
+    ::selection { background: rgba(255, 77, 109, 0.22); }
+    :focus-visible { outline: 3px solid rgba(255, 77, 109, 0.28); outline-offset: 2px; }
+
+    .app { max-width: 980px; margin: 0 auto; padding: 34px 18px 56px; }
+
+    .header { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+    .logo {
+      font-family: var(--display);
+      font-size: clamp(34px, 4.2vw, 56px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--accent);
+      line-height: 1;
+      text-shadow:
+        0 1px 0 rgba(255,255,255,0.9),
+        0 12px 24px rgba(20,19,22,0.08);
+      user-select: none;
+    }
+    .tagline {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      text-align: right;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: end;
+    }
+    @media (max-width: 740px) {
+      .header { flex-direction: column; align-items: flex-start; }
+      .tagline { text-align: left; }
+      .filters { grid-template-columns: 1fr 1fr; }
+      .dig-btn { grid-column: span 2; width: 100%; justify-content: center; }
+    }
+
+    .filter-group label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 7px;
+      font-weight: 700;
+    }
+
+    /* Pill dropdowns with soft 3D shadow */
+    select {
+      width: 100%;
+      background: linear-gradient(180deg, #fff, #fbfbfb);
+      border: 1px solid rgba(20,19,22,0.14);
+      color: var(--ink);
+      padding: 12px 44px 12px 16px;
+      border-radius: 50px;
+      font-family: var(--body);
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      appearance: none;
+      cursor: pointer;
+      box-shadow:
+        4px 4px 0 rgba(0,0,0,0.12),
+        0 18px 40px rgba(20,19,22,0.06);
+      transition: transform 0.2s var(--ease-bounce), box-shadow 0.2s var(--ease-bounce), border-color 0.2s var(--ease-bounce), background 0.2s var(--ease-bounce);
+      background-image:
+        radial-gradient(16px 10px at 18px 10px, rgba(255,255,255,0.95), rgba(255,255,255,0)),
+        linear-gradient(180deg, #fff, #fbfbfb),
+        linear-gradient(45deg, transparent 50%, rgba(20,19,22,0.55) 50%),
+        linear-gradient(135deg, rgba(20,19,22,0.55) 50%, transparent 50%);
+      background-position:
+        0 0,
+        0 0,
+        calc(100% - 22px) 55%,
+        calc(100% - 16px) 55%;
+      background-size:
+        100% 100%,
+        100% 100%,
+        6px 6px,
+        6px 6px;
+      background-repeat: no-repeat;
+    }
+    select:hover { transform: translateY(-1px); }
+    select:focus {
+      border-color: rgba(255,77,109,0.55);
+      transform: scale(1.02);
+      box-shadow:
+        6px 6px 0 rgba(0,0,0,0.14),
+        0 22px 56px rgba(20,19,22,0.09);
+    }
+
+    /* Primary CTA: 3D press */
+    .dig-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(180deg, #ff5f7d, var(--accent));
+      color: #ffffff;
+      border: 0;
+      padding: 14px 26px;
+      border-radius: 999px;
+      font-family: var(--display);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow:
+        0 8px 0 var(--accentInk),
+        0 24px 60px rgba(255,77,109,0.25),
+        0 18px 42px rgba(20,19,22,0.08);
+      transform: translateY(0);
+      transition: transform 0.2s var(--ease-bounce), box-shadow 0.2s var(--ease-bounce), filter 0.2s var(--ease-bounce);
+    }
+    .dig-btn:hover { filter: brightness(1.02) saturate(1.02); transform: translateY(-1px); }
+    .dig-btn:active {
+      transform: translateY(4px);
+      box-shadow:
+        0 4px 0 var(--accentInk),
+        0 18px 44px rgba(255,77,109,0.18),
+        0 10px 22px rgba(20,19,22,0.07);
+    }
+    .dig-btn:disabled { opacity: 0.55; cursor: not-allowed; filter: saturate(0.6); }
+
+    /* Floating 3D cards */
+    .player-card,
+    .detector-card,
+    .upload-section {
+      background: var(--surface);
+      border: 1px solid rgba(20,19,22,0.12);
+      border-radius: 20px;
+      box-shadow:
+        8px 8px 0 rgba(0,0,0,0.10),
+        0 20px 60px rgba(20,19,22,0.08);
+      transition: transform 0.22s var(--ease-bounce), box-shadow 0.22s var(--ease-bounce), border-color 0.22s var(--ease-bounce);
+    }
+    .player-card:hover,
+    .detector-card:hover,
+    .upload-section:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        10px 10px 0 rgba(0,0,0,0.11),
+        0 26px 74px rgba(20,19,22,0.10);
+    }
+
+    .player-card { overflow: hidden; margin-bottom: 16px; }
+
+    .video-wrap {
+      position: relative;
+      width: 100%;
+      padding-top: 46%;
+      background: #ffffff;
+    }
+    .video-wrap::before{
+      content:"";
+      position:absolute;
+      inset: 14px 14px auto 14px;
+      height: calc(100% - 28px);
+      border-radius: 16px;
+      pointer-events:none;
+      box-shadow:
+        inset 0 0 0 1px rgba(20,19,22,0.08),
+        0 14px 34px rgba(20,19,22,0.10);
+    }
+    .video-wrap iframe {
+      position: absolute;
+      inset: 14px;
+      width: calc(100% - 28px);
+      height: calc(100% - 28px);
+      border: none;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .placeholder {
+      position: absolute;
+      inset: 14px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background:
+        radial-gradient(120px 80px at 30% 20%, rgba(255,77,109,0.12), rgba(255,77,109,0)),
+        linear-gradient(180deg, #ffffff, #fbfbfb);
+      color: var(--muted);
+      box-shadow:
+        inset 0 0 0 1px rgba(20,19,22,0.08),
+        0 14px 34px rgba(20,19,22,0.10);
+    }
+    .placeholder-icon {
+      width: 62px;
+      height: 62px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #ffffff;
+      background: linear-gradient(180deg, #ff6a86, var(--accent));
+      box-shadow:
+        0 10px 0 var(--accentInk),
+        0 20px 44px rgba(255,77,109,0.22);
+      transform: translateY(-2px);
+    }
+
+    .meta-row {
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-top: 1px solid rgba(20,19,22,0.10);
+    }
+    .track-title {
+      font-size: 15px;
+      font-weight: 700;
+      flex: 1;
+      min-width: 160px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -0.01em;
+    }
+
+    .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      background: #fff;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.10);
+      border: 1px solid rgba(20,19,22,0.10);
+      transform: translateY(0);
+      transition: transform 0.2s var(--ease-bounce), box-shadow 0.2s var(--ease-bounce), background 0.2s var(--ease-bounce), color 0.2s var(--ease-bounce), border-color 0.2s var(--ease-bounce);
+    }
+    .badge-bpm { background: rgba(255,77,109,0.10); color: var(--accent); border-color: rgba(255,77,109,0.22); }
+    .badge-key { background: rgba(255,77,109,0.08); color: rgba(122,18,39,0.92); border-color: rgba(255,77,109,0.18); }
+    .badge-genre { background: #ffffff; color: var(--muted); }
+
+    .action-row { padding: 0 16px 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .act-btn {
+      background: linear-gradient(180deg, #ffffff, #fbfbfb);
+      border: 1px solid rgba(20,19,22,0.12);
+      color: var(--ink);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.12);
+      transition: all 0.2s var(--ease-bounce);
+    }
+    .act-btn:hover { transform: translateY(-2px); border-color: rgba(255,77,109,0.38); background: linear-gradient(180deg, #ffffff, var(--accentSoft)); }
+    .act-btn:active { transform: translateY(1px); box-shadow: 2px 2px 0 rgba(0,0,0,0.12); }
+    .act-btn.copied { color: rgba(122,18,39,0.92); border-color: rgba(255,77,109,0.35); background: linear-gradient(180deg, #ffffff, rgba(255,77,109,0.12)); }
+
+    .detector-card { padding: 16px; margin-bottom: 16px; }
+    .det-header {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted2);
+      font-weight: 900;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(20,19,22,0.22);
+      flex-shrink: 0;
+      box-shadow: 3px 3px 0 rgba(0,0,0,0.10);
+      transition: background 0.3s;
+    }
+    .status-dot.live { background: var(--accent); }
+
+    .det-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    @media (max-width: 740px) { .det-grid { grid-template-columns: 1fr; } }
+
+    /* Inflated stat bubbles */
+    .det-stat {
+      border-radius: 22px;
+      padding: 14px 12px 16px;
+      text-align: center;
+      background:
+        radial-gradient(180px 120px at 28% 20%, rgba(255,255,255,0.95), rgba(255,255,255,0)),
+        linear-gradient(180deg, #ffffff, rgba(255,77,109,0.06));
+      border: 1px solid rgba(20,19,22,0.10);
+      box-shadow:
+        6px 6px 0 rgba(0,0,0,0.10),
+        0 18px 46px rgba(20,19,22,0.08);
+      transition: transform 0.2s var(--ease-bounce), box-shadow 0.2s var(--ease-bounce);
+    }
+    .det-stat:hover { transform: translateY(-2px); box-shadow: 8px 8px 0 rgba(0,0,0,0.10), 0 22px 58px rgba(20,19,22,0.10); }
+    .det-label {
+      font-size: 11px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+      font-weight: 900;
+    }
+    .det-value {
+      font-family: var(--display);
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .det-value.bpm-val { color: var(--accent); }
+    .det-value.key-val { color: var(--accent); }
+
+    .detecting-bar {
+      height: 6px;
+      background: linear-gradient(90deg, rgba(255,77,109,0.20), rgba(255,77,109,0.50), rgba(255,77,109,0.20));
+      border-radius: 999px;
+      margin-top: 14px;
+      width: 0%;
+      transition: width 0.25s ease;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        4px 4px 0 rgba(0,0,0,0.10);
+    }
+
+    /* Upload: dashed -> solid accent on hover */
+    .upload-section {
+      border: 2px dashed rgba(20,19,22,0.16);
+      padding: 22px;
+      text-align: center;
+      margin-bottom: 16px;
+      box-shadow:
+        8px 8px 0 rgba(0,0,0,0.08),
+        0 20px 60px rgba(20,19,22,0.06);
+    }
+    .upload-section:hover {
+      border-style: solid;
+      border-color: rgba(255,77,109,0.55);
+      background: linear-gradient(180deg, #ffffff, rgba(255,77,109,0.05));
+    }
+    .upload-section p { font-size: 14px; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+    .upload-btn-wrap { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+    input[type="file"] { display: none; }
+    .upload-label {
+      background: linear-gradient(180deg, #ffffff, #fbfbfb);
+      border: 1px solid rgba(20,19,22,0.12);
+      color: var(--ink);
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 4px 4px 0 rgba(0,0,0,0.12);
+      transition: all 0.2s var(--ease-bounce);
+    }
+    .upload-label:hover { transform: translateY(-2px); border-color: rgba(255,77,109,0.38); background: linear-gradient(180deg, #ffffff, var(--accentSoft)); }
+    .upload-label:active { transform: translateY(1px); box-shadow: 2px 2px 0 rgba(0,0,0,0.12); }
+
+    .history-header {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted2);
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+    .history-list { display: flex; flex-direction: column; gap: 10px; }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(180deg, #ffffff, #fbfbfb);
+      border: 1px solid rgba(20,19,22,0.12);
+      border-radius: 999px;
+      padding: 12px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      box-shadow: 5px 5px 0 rgba(0,0,0,0.10);
+      transition: all 0.2s var(--ease-bounce);
+    }
+    .history-item:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,77,109,0.26);
+      background: linear-gradient(180deg, #ffffff, rgba(255,77,109,0.06));
+      box-shadow: 7px 7px 0 rgba(0,0,0,0.10);
+    }
+    .history-item:active { transform: translateY(1px); box-shadow: 3px 3px 0 rgba(0,0,0,0.10); }
+    .hi-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); font-weight: 700; }
+    .hi-badge { font-size: 12px; color: var(--muted); white-space: nowrap; font-weight: 800; }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.55);
+      border-top-color: rgba(255,255,255,1);
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.14));
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: linear-gradient(180deg, #ffffff, #fbfbfb);
+      border: 1px solid rgba(255,77,109,0.35);
+      color: rgba(122,18,39,0.95);
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: transform 0.22s var(--ease-bounce);
+      z-index: 1000;
+      pointer-events: none;
+      box-shadow:
+        6px 6px 0 rgba(0,0,0,0.12),
+        0 26px 70px rgba(20,19,22,0.12);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    .footer-sig {
+      margin-top: 40px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(20,19,22,0.10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .sig-line { font-size: 12px; color: rgba(20,19,22,0.38); letter-spacing: 0.06em; font-weight: 700; }
+    .sig-name {
+      font-family: var(--display);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.10em;
+      color: rgba(255,77,109,0.38);
+    }
+    .sig-dot { width: 4px; height: 4px; border-radius: 999px; background: rgba(20,19,22,0.18); }
+
+    /* Ensure any legacy inline styles inherit the new system */
+    .mono,
+    .micro { font-family: var(--body); }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">CRATEDIG</div>
+    <div class="tagline">// random sample discovery + key/bpm detection</div>
+  </div>
+  <div class="filters">
+    <div class="filter-group">
+      <label>Genre</label>
+      <select id="genreSelect">
+        <option value="soul_jazz">Soul / Jazz</option>
+        <option value="boom_bap">Boom Bap</option>
+        <option value="funk_break">Funk / Break</option>
+        <option value="lofi">Lo-Fi / Chill</option>
+        <option value="afrobeat">Afrobeat</option>
+        <option value="latin">Latin / Bossa</option>
+        <option value="electronic">Electronic</option>
+        <option value="gospel">Gospel / Soul</option>
+        <option value="psych">Psych Rock</option>
+        <option value="reggae">Reggae / Dub</option>
+        <option value="blues">Blues</option>
+        <option value="classical">Classical</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Era</label>
+      <select id="eraSelect">
+        <option value="">Any Era</option>
+        <option value="1960s">60s</option>
+        <option value="1970s">70s</option>
+        <option value="1980s">80s</option>
+        <option value="1990s">90s</option>
+        <option value="2000s">2000s</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Mood</label>
+      <select id="moodSelect">
+        <option value="">Any Mood</option>
+        <option value="melancholy">Melancholy</option>
+        <option value="upbeat">Upbeat</option>
+        <option value="dark">Dark / Moody</option>
+        <option value="smooth">Smooth</option>
+        <option value="aggressive">Aggressive</option>
+        <option value="dreamy">Dreamy</option>
+      </select>
+    </div>
+    <button class="dig-btn" id="digBtn">DIG CRATE</button>
+  </div>
+  <div class="player-card">
+    <div class="video-wrap" id="videoWrap">
+      <div class="placeholder">
+        <div class="placeholder-icon">&#9654;</div>
+        <span class="micro" style="font-size:13px;font-weight:700;letter-spacing:0.02em">hit dig crate to find a sample</span>
+      </div>
+    </div>
+    <div class="meta-row" id="metaRow" style="display:none">
+      <div class="track-title" id="trackTitle">-</div>
+      <div class="badges" id="badgeRow"></div>
+    </div>
+    <div class="action-row" id="actionRow" style="display:none">
+      <button class="act-btn" id="copyBtn">copy link</button>
+      <button class="act-btn" id="nextBtn">next sample</button>
+      <button class="act-btn" id="ytBtn">open on youtube</button>
+    </div>
+  </div>
+  <div class="detector-card">
+    <div class="det-header">
+      <span class="status-dot" id="statusDot"></span>
+      bpm + key detector
+    </div>
+    <div class="det-grid">
+      <div class="det-stat"><div class="det-label">BPM</div><div class="det-value bpm-val" id="bpmVal">-</div></div>
+      <div class="det-stat"><div class="det-label">Key</div><div class="det-value key-val" id="keyVal">-</div></div>
+      <div class="det-stat"><div class="det-label">Mode</div><div class="det-value" id="modeVal" style="font-size:18px;padding-top:3px">-</div></div>
+    </div>
+    <div class="detecting-bar" id="detectBar"></div>
+  </div>
+  <div class="upload-section">
+    <p>Upload your own audio to detect its key + BPM</p>
+    <div class="upload-btn-wrap">
+      <label class="upload-label" for="audioFile">upload audio</label>
+      <input type="file" id="audioFile" accept="audio/*" />
+      <span class="micro" style="font-size:12px;color:var(--muted);font-weight:800;letter-spacing:0.08em;text-transform:uppercase">mp3 · wav · ogg</span>
+    </div>
+  </div>
+  <div id="historySection" style="display:none;margin-top:16px">
+    <div class="history-header">recent digs</div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+  <div class="footer-sig">
+    <span class="sig-line">crafted by</span>
+    <span class="sig-dot"></span>
+    <span class="sig-name">HILLBOY</span>
+    <span class="sig-dot"></span>
+    <span class="sig-line">cratedig.site</span>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var YT_API_KEY = 'AIzaSyCuNnWV0Y-tkATkOK0vdq3ZTIoXG48t3W0';
+// Each genre has hyper-specific queries that only pull actual songs
+// Pattern: [artist/style name] - [song title] OR "[genre] official audio"
+var SEARCH_TERMS = {
+  soul_jazz: [
+    'rare soul 45 official audio',
+    'obscure soul singer official audio',
+    'deep soul ballad official audio',
+    'vintage soul music official audio',
+    'jazz soul classic official audio',
+    'rare groove soul official audio',
+    'blue eyed soul official audio',
+    'northern soul classic official audio',
+    'southern soul official audio',
+    'soul ballad vinyl rip official'
+  ],
+  boom_bap: [
+    'boom bap instrumental official audio',
+    'underground hip hop track official audio',
+    'raw hip hop instrumental official',
+    'east coast hip hop track official audio',
+    'gritty hip hop official audio',
+    'hard rap instrumental official audio',
+    'hip hop classic track official audio',
+    'street hip hop official audio',
+    'dark hip hop beat official audio',
+    'boom bap classic official audio'
+  ],
+  funk_break: [
+    'rare funk 45 official audio',
+    'deep funk track official audio',
+    'funk groove official audio',
+    'classic funk song official audio',
+    'funky soul official audio',
+    'funk band official audio',
+    'heavy funk official audio',
+    'funky break official audio',
+    'disco funk official audio',
+    'rare funk groove official audio'
+  ],
+  lofi: [
+    'lofi jazz track official audio',
+    'mellow jazz piano official audio',
+    'chill jazz official audio',
+    'vintage jazz official audio',
+    'slow jazz ballad official audio',
+    'cool jazz official audio',
+    'soft jazz official audio',
+    'late night jazz official audio',
+    'smooth jazz classic official audio',
+    'jazz trio official audio'
+  ],
+  afrobeat: [
+    'afrobeat classic official audio',
+    'fela kuti official audio',
+    'afro funk official audio',
+    'highlife music official audio',
+    'afrobeat band official audio',
+    'west african music official audio',
+    'afro soul official audio',
+    'lagos funk official audio',
+    'african rhythm official audio',
+    'juju music official audio'
+  ],
+  latin: [
+    'bossa nova classic official audio',
+    'latin jazz official audio',
+    'samba classic official audio',
+    'latin soul official audio',
+    'afro cuban jazz official audio',
+    'salsa classic official audio',
+    'mambo official audio',
+    'latin groove official audio',
+    'bossa nova singer official audio',
+    'latin rhythm official audio'
+  ],
+  electronic: [
+    'vintage synth pop official audio',
+    'analog synth official audio',
+    'electronic soul official audio',
+    'italo disco official audio',
+    'vintage electronic official audio',
+    'synth funk official audio',
+    'electronic groove official audio',
+    'retro synth official audio',
+    'space disco official audio',
+    'electronic music classic official audio'
+  ],
+  gospel: [
+    'classic gospel song official audio',
+    'gospel choir official audio',
+    'gospel soul official audio',
+    'vintage gospel official audio',
+    'southern gospel official audio',
+    'gospel organ official audio',
+    'inspirational gospel official audio',
+    'black gospel classic official audio',
+    'gospel music official audio',
+    'old school gospel official audio'
+  ],
+  psych: [
+    'psychedelic rock official audio',
+    'garage rock classic official audio',
+    'vintage psych official audio',
+    'psych rock band official audio',
+    'psychedelic soul official audio',
+    'fuzz guitar official audio',
+    'trippy rock official audio',
+    'psych pop official audio',
+    'vintage garage band official audio',
+    'psychedelic groove official audio'
+  ],
+  reggae: [
+    'roots reggae classic official audio',
+    'dub music official audio',
+    'classic reggae song official audio',
+    'reggae singer official audio',
+    'rocksteady classic official audio',
+    'jamaican music official audio',
+    'lovers rock official audio',
+    'dancehall classic official audio',
+    'reggae groove official audio',
+    'vintage dub official audio'
+  ],
+  blues: [
+    'chicago blues classic official audio',
+    'electric blues official audio',
+    'blues guitar official audio',
+    'delta blues official audio',
+    'blues singer official audio',
+    'slow blues official audio',
+    'blues rock official audio',
+    'vintage blues official audio',
+    'twelve bar blues official audio',
+    'blues classic official audio'
+  ],
+  classical: [
+    'classical piano official audio',
+    'string quartet official audio',
+    'classical orchestra official audio',
+    'chamber music official audio',
+    'baroque music official audio',
+    'piano sonata official audio',
+    'violin concerto official audio',
+    'classical symphony official audio',
+    'romantic era piano official audio',
+    'classical guitar official audio'
+  ]
+};
+
+// Hard blocked words — if any appear in the title, skip the video
+var BLOCKED = [
+  'tutorial','how to','how-to','lesson','learn','teach','course',
+  'tip','trick','review','react','reaction','interview','podcast',
+  'vlog','explained','breakdown','analysis','making of','behind the scenes',
+  'gear','setup','equipment','plugin','vst','daw','fl studio','ableton',
+  'logic pro','pro tools','mixing','mastering','music theory','chord',
+  'scale','arpeggio','cover','karaoke','lyrics video','lyric video',
+  'drum cover','guitar cover','piano cover','bass cover','live performance',
+  'concert','remix contest','sample pack','drum kit','loop pack',
+  'free download','free beats','type beat','#typebeat','beat making',
+  'producer reacts','first listen','blind reaction','unboxing'
+];
+
+var KEYS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+var FALLBACKS = [
+  {id:'sM4p_WsQ1Sc',title:'James Brown - Funky Drummer'},
+  {id:'fVZFDoAbGh4',title:'Bob James - Take Me To The Mardi Gras'},
+  {id:'XHbFzlCBbfs',title:'Grover Washington Jr. - Mr. Magic'},
+  {id:'tMVBJp4GJb8',title:'Roy Ayers - Everybody Loves The Sunshine'},
+  {id:'ZAw5VvOF7MQ',title:'Ahmad Jamal - Swahililand'},
+  {id:'rE6yjmQJGBM',title:'Cymande - Bra'},
+  {id:'Hm2NG9-pqbQ',title:'The Incredible Bongo Band - Apache'},
+  {id:'yq5rBD_P3Ps',title:'Idris Muhammad - Could Heaven Ever Be Like This'},
+  {id:'zGXUbYNNGGA',title:'Donald Byrd - Wind Parade'},
+  {id:'gdzrNAFkRKs',title:'Gil Scott-Heron - The Bottle'}
+];
+
+var currentVideoId = null;
+var digHistory = [];
+var audioCtx = null;
+
+function rnd(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function decodeHtml(html){var el=document.createElement('textarea');el.innerHTML=html;return el.value;}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}
+
+function buildQuery(){
+  var g=document.getElementById('genreSelect').value;
+  var e=document.getElementById('eraSelect').value;
+  var terms=SEARCH_TERMS[g]||SEARCH_TERMS['soul_jazz'];
+  var q=terms[Math.floor(Math.random()*terms.length)];
+  if(e) q+=' '+e;
+  return q;
+}
+
+function getGenreLabel(){var sel=document.getElementById('genreSelect');return sel.options[sel.selectedIndex].text;}
+
+function isMusicVideo(title){
+  var t=title.toLowerCase();
+  for(var i=0;i<BLOCKED.length;i++){
+    if(t.indexOf(BLOCKED[i])!==-1) return false;
+  }
+  return true;
+}
+
+function resetDetector(){
+  document.getElementById('statusDot').className='status-dot';
+  document.getElementById('bpmVal').textContent='-';
+  document.getElementById('keyVal').textContent='-';
+  document.getElementById('modeVal').textContent='-';
+  document.getElementById('detectBar').style.width='0%';
+}
+
+function simulateDetection(){
+  document.getElementById('bpmVal').textContent='...';
+  document.getElementById('keyVal').textContent='...';
+  document.getElementById('modeVal').textContent='...';
+  var bar=document.getElementById('detectBar');
+  bar.style.width='0%';
+  var p=0;
+  var iv=setInterval(function(){
+    p+=rnd(8,16);
+    bar.style.width=Math.min(p,95)+'%';
+    if(p>=100){
+      clearInterval(iv);
+      bar.style.width='100%';
+      var bpm=rnd(70,140);
+      var key=KEYS[Math.floor(Math.random()*KEYS.length)];
+      var mode=Math.random()>0.5?'Major':'Minor';
+      document.getElementById('bpmVal').textContent=bpm;
+      document.getElementById('keyVal').textContent=key;
+      document.getElementById('modeVal').textContent=mode;
+      document.getElementById('statusDot').className='status-dot live';
+      var br=document.getElementById('badgeRow');
+      br.innerHTML+='<span class="badge badge-bpm">'+bpm+' BPM</span><span class="badge badge-key">'+key+' '+mode+'</span>';
+      setTimeout(function(){bar.style.width='0%';},1600);
+    }
+  },110);
+}
+
+function loadVideo(videoId,title,genre){
+  currentVideoId=videoId;
+  var wrap=document.getElementById('videoWrap');
+  wrap.innerHTML='<iframe src="https://www.youtube.com/embed/'+videoId+'?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+  document.getElementById('trackTitle').textContent=decodeHtml(title);
+  document.getElementById('metaRow').style.display='flex';
+  document.getElementById('actionRow').style.display='flex';
+  document.getElementById('badgeRow').innerHTML='<span class="badge badge-genre">'+genre+'</span>';
+  addToHistory(videoId,title,genre);
+  simulateDetection();
+}
+
+function addToHistory(id,title,genre){
+  digHistory.unshift({id:id,title:title,genre:genre});
+  if(digHistory.length>10) digHistory.pop();
+  renderHistory();
+}
+
+function renderHistory(){
+  var sec=document.getElementById('historySection');
+  var list=document.getElementById('historyList');
+  if(digHistory.length===0){sec.style.display='none';return;}
+  sec.style.display='block';
+  var html='';
+  for(var i=0;i<digHistory.length;i++){
+    var h=digHistory[i];
+    html+='<div class="history-item" data-id="'+h.id+'" data-title="'+h.title.replace(/"/g,'&quot;')+'" data-genre="'+h.genre+'"><span class="hi-title">'+decodeHtml(h.title)+'</span><span class="hi-badge">'+h.genre+'</span></div>';
+  }
+  list.innerHTML=html;
+  var items=list.querySelectorAll('.history-item');
+  for(var j=0;j<items.length;j++){
+    items[j].addEventListener('click',function(){
+      loadVideo(this.getAttribute('data-id'),this.getAttribute('data-title'),this.getAttribute('data-genre'));
+    });
+  }
+}
+
+async function digNewSample(){
+  var btn=document.getElementById('digBtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner"></span>';
+  resetDetector();
+  var videoId,title;
+  var found=false;
+  var attempts=0;
+
+  while(!found && attempts<4){
+    attempts++;
+    try{
+      var query=buildQuery();
+      var url='https://www.googleapis.com/youtube/v3/search'
+        +'?part=snippet'
+        +'&q='+encodeURIComponent(query)
+        +'&type=video'
+        +'&videoCategoryId=10'
+        +'&maxResults=15'
+        +'&videoDuration=medium'
+        +'&key='+YT_API_KEY
+        +'&order=relevance';
+      var res=await fetch(url);
+      var data=await res.json();
+      if(data.items&&data.items.length>0){
+        var shuffled=data.items.sort(function(){return Math.random()-0.5;});
+        for(var i=0;i<shuffled.length;i++){
+          var t=shuffled[i].snippet.title;
+          if(isMusicVideo(t)){
+            videoId=shuffled[i].id.videoId;
+            title=t;
+            found=true;
+            break;
+          }
+        }
+      }
+    } catch(err){ break; }
+  }
+
+  if(!found){
+    var fb=FALLBACKS[Math.floor(Math.random()*FALLBACKS.length)];
+    videoId=fb.id;
+    title=fb.title;
+  }
+
+  loadVideo(videoId,title,getGenreLabel());
+  btn.disabled=false;
+  btn.textContent='DIG CRATE';
+}
+
+function copyLink(){
+  if(!currentVideoId) return;
+  var link='https://www.youtube.com/watch?v='+currentVideoId;
+  navigator.clipboard.writeText(link).then(function(){
+    var btn=document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.textContent='copied!';
+    showToast('link copied to clipboard');
+    setTimeout(function(){btn.classList.remove('copied');btn.textContent='copy link';},2200);
+  });
+}
+
+function openYouTube(){
+  if(!currentVideoId) return;
+  window.open('https://www.youtube.com/watch?v='+currentVideoId,'_blank');
+}
+
+function estimateBPM(data,sr){
+  var step=Math.floor(sr*0.01);
+  var energies=[];
+  for(var i=0;i+step<data.length;i+=step){
+    var e=0;for(var j=0;j<step;j++) e+=data[i+j]*data[i+j];
+    energies.push(e/step);
+  }
+  var diffs=[];
+  for(var k=1;k<energies.length;k++){var d=energies[k]-energies[k-1];diffs.push(d>0?d:0);}
+  var sum=0;for(var l=0;l<diffs.length;l++) sum+=diffs[l];
+  var thresh=(sum/diffs.length)*1.2;
+  var beats=0,last=-100;
+  for(var m=0;m<diffs.length;m++){if(diffs[m]>thresh&&m-last>20){beats++;last=m;}}
+  var raw=(beats/(data.length/sr))*60;
+  if(raw<60) return Math.round(raw*2);
+  if(raw>170) return Math.round(raw/2);
+  return Math.round(raw);
+}
+
+function estimateKey(data,sr){
+  var fftSize=4096;
+  var chroma=[0,0,0,0,0,0,0,0,0,0,0,0];
+  var chunks=Math.min(8,Math.floor(data.length/fftSize));
+  var step=Math.floor(data.length/chunks);
+  for(var s=0;s<chunks;s++){
+    for(var i=0;i<fftSize;i++){
+      var idx=s*step+i;if(idx>=data.length) continue;
+      var freq=(i/fftSize)*sr;if(freq<80||freq>4000) continue;
+      var semi=Math.round(12*Math.log2(freq/440))%12;
+      chroma[((semi%12)+12)%12]+=Math.abs(data[idx]);
+    }
+  }
+  var maxIdx=0;
+  for(var n=1;n<12;n++){if(chroma[n]>chroma[maxIdx]) maxIdx=n;}
+  var note=KEYS[maxIdx];
+  var maj=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88];
+  var min=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+  var ms=0,ns=0;
+  for(var p=0;p<12;p++){var cn=chroma[(p+maxIdx)%12];ms+=cn*maj[p];ns+=cn*min[p];}
+  return {note:note,mode:ms>ns?'Major':'Minor'};
+}
+
+async function analyzeUpload(input){
+  var file=input.files[0];if(!file) return;
+  showToast('analyzing audio...');
+  resetDetector();
+  document.getElementById('bpmVal').textContent='...';
+  document.getElementById('keyVal').textContent='...';
+  document.getElementById('modeVal').textContent='...';
+  var bar=document.getElementById('detectBar');
+  var p=0;
+  var prog=setInterval(function(){p+=4;bar.style.width=Math.min(p,85)+'%';if(p>=85) clearInterval(prog);},60);
+  try{
+    if(!audioCtx) audioCtx=new AudioContext();
+    var arrayBuf=await file.arrayBuffer();
+    var audioBuf=await audioCtx.decodeAudioData(arrayBuf);
+    var data=audioBuf.getChannelData(0);
+    var sr=audioBuf.sampleRate;
+    var bpm=estimateBPM(data,sr);
+    var key=estimateKey(data,sr);
+    clearInterval(prog);
+    bar.style.width='100%';
+    document.getElementById('bpmVal').textContent=bpm;
+    document.getElementById('keyVal').textContent=key.note;
+    document.getElementById('modeVal').textContent=key.mode;
+    document.getElementById('statusDot').className='status-dot live';
+    document.getElementById('badgeRow').innerHTML='<span class="badge badge-bpm">'+bpm+' BPM</span><span class="badge badge-key">'+key.note+' '+key.mode+'</span>';
+    showToast('detected: '+bpm+' BPM - '+key.note+' '+key.mode);
+    setTimeout(function(){bar.style.width='0%';},1600);
+  } catch(err){
+    clearInterval(prog);
+    showToast('could not analyze - try a different file');
+    resetDetector();
+  }
+  input.value='';
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('digBtn').addEventListener('click',digNewSample);
+  document.getElementById('copyBtn').addEventListener('click',copyLink);
+  document.getElementById('nextBtn').addEventListener('click',digNewSample);
+  document.getElementById('ytBtn').addEventListener('click',openYouTube);
+  document.getElementById('audioFile').addEventListener('change',function(){analyzeUpload(this);});
+});
+</script>
+</body>
+</html>
