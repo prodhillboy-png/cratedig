@@ -7,6 +7,14 @@
   <meta name="description" content="Dig random music samples by genre, era and mood. Detect BPM and key instantly. Built for producers." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q5B58GKBKY"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-Q5B58GKBKY');
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -692,6 +700,7 @@ var audioCtx       = null;
 var shownThisSession = {};
 var pbBuilding     = false;
 var pbOutputData   = '';
+var detectInterval = null;
 
 // ─── HELPERS ─────────────────────────────────────────────────
 function rnd(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
@@ -762,10 +771,11 @@ function simulateDetection(genre){
   document.getElementById('modeVal').textContent='...';
   var bar=document.getElementById('detectBar'), p=0;
   bar.style.width='0%';
-  var iv=setInterval(function(){
+  if(detectInterval){ clearInterval(detectInterval); detectInterval=null; }
+  detectInterval=setInterval(function(){
     p+=rnd(8,16); bar.style.width=Math.min(p,95)+'%';
     if(p>=100){
-      clearInterval(iv); bar.style.width='100%';
+      clearInterval(detectInterval); detectInterval=null; bar.style.width='100%';
       var bpm=rnd(range[0],range[1]);
       var key=KEYS[Math.floor(Math.random()*KEYS.length)];
       var mode=Math.random()>0.45?'Major':'Minor';
@@ -836,9 +846,6 @@ async function analyzeUpload(input){
     document.getElementById('keyVal').textContent=key.note;
     document.getElementById('modeVal').textContent=key.mode;
     document.getElementById('statusDot').className='status-dot live';
-    document.getElementById('badgeRow').innerHTML=
-      '<span class="badge badge-bpm">'+bpm+' BPM</span>'+
-      '<span class="badge badge-key">'+key.note+' '+key.mode+'</span>';
     showToast('detected: '+bpm+' BPM · '+key.note+' '+key.mode);
     setTimeout(function(){ bar.style.width='0%'; },1600);
   } catch(err){
@@ -941,6 +948,7 @@ function renderHistory(){
     el.addEventListener('click',function(){
       var id=this.getAttribute('data-id');
       var track=findTrackById(id)||{id:id,title:this.getAttribute('data-title')};
+      resetDetector();
       loadVideo(track, this.getAttribute('data-genre'));
     });
   });
