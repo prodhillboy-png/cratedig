@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Plus, Trash2, Edit, Save, X, Upload, ArrowLeft, Package } from 'lucide-react'
+import { Plus, Trash2, Edit, Save, X, ArrowLeft, Package, ImageIcon, FileArchive, CheckCircle2, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -21,6 +21,11 @@ interface Drumkit {
   stripe_price_id: string
 }
 
+interface UploadField {
+  uploading: boolean
+  error: string
+}
+
 export default function AdminDrumkitsPage() {
   const router = useRouter()
   const [isAdmin, setIsAdmin] = useState(false)
@@ -29,7 +34,7 @@ export default function AdminDrumkitsPage() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  
+
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -42,6 +47,16 @@ export default function AdminDrumkitsPage() {
     is_featured: false,
   })
 
+  const [dragActive, setDragActive] = useState({ cover: false, zip: false })
+  const [uploadState, setUploadState] = useState<{ cover: UploadField; zip: UploadField }>({
+    cover: { uploading: false, error: '' },
+    zip: { uploading: false, error: '' },
+  })
+  // Use counters to handle drag enter/leave firing on child elements
+  const dragCounter = useRef({ cover: 0, zip: 0 })
+  const coverInputRef = useRef<HTMLInputElement>(null)
+  const zipInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     checkAdminAndFetch()
   }, [])
@@ -49,13 +64,12 @@ export default function AdminDrumkitsPage() {
   const checkAdminAndFetch = async () => {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       router.push('/auth/login')
       return
     }
 
-    // Check if user is admin
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_admin')
@@ -78,11 +92,118 @@ export default function AdminDrumkitsPage() {
       .from('drumkits')
       .select('*')
       .order('created_at', { ascending: false })
-    
+
     if (data) setDrumkits(data)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // ─── Upload helpers ────────────────────────────────────────────────────────
+
+  const uploadCover = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setUploadState(s => ({ ...s, cover: { uploading: false, error: 'Must be an image file (jpg, png, webp)' } }))
+      return
+    }
+    setUploadState(s => ({ ...s, cover: { uploading: true, error: '' } }))
+    const supabase = createClient()
+    const safeName = file.name.replace(/\s+/g, '-').toLowerCase()
+    const path = `covers/${Date.now()}-${safeName}`
+
+    console.log('[DropZone:cover] uploading to drumkit-covers →', path)
+    const { data, error } = await supabase.storage.from('drumkit-covers').upload(path, file)
+
+    if (error) {
+      console.error('[DropZone:cover] upload error', error)
+      setUploadState(s => ({ ...s, cover: { uploading: false, error: error.message } }))
+      return
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('drumkit-covers').getPublicUrl(data.path)
+    console.log('[DropZone:cover] upload complete, public URL →', publicUrl)
+    setForm(f => ({ ...f, image_url: publicUrl }))
+    setUploadState(s => ({ ...s, cover: { uploading: false, error: '' } }))
+  }
+
+  const uploadZip = async (file: File) => {
+    const isZip = file.name.endsWith('.zip') ||
+      file.type === 'application/zip' ||
+      file.type === 'application/x-zip-compressed' ||
+      file.type === 'application/octet-stream'
+    if (!isZip) {
+      setUploadState(s => ({ ...s, zip: { uploading: false, error: 'Must be a .zip file' } }))
+      return
+    }
+    setUploadState(s => ({ ...s, zip: { uploading: true, error: '' } }))
+    const supabase = createClient()
+    const safeName = file.name.replace(/\s+/g, '-').toLowerCase()
+    const path = `kits/${Date.now()}-${safeName}`
+
+    console.log('[DropZone:zip] uploading to drumkit-files →', path)
+    const { data, error } = await supabase.storage.from('drumkit-files').upload(path, file)
+
+    if (error) {
+      console.error('[DropZone:zip] upload error', error)
+      setUploadState(s => ({ ...s, zip: { uploading: false, error: error.message } }))
+      return
+    }
+
+    // Store the storage path (not a URL) — generate signed URLs at download time
+    console.log('[DropZone:zip] upload complete, storage path →', data.path)
+    setForm(f => ({ ...f, file_url: data.path }))
+    setUploadState(s => ({ ...s, zip: { uploading: false, error: '' } }))
+  }
+
+  // ─── Drag event handlers ───────────────────────────────────────────────────
+
+  const onDragEnter = (zone: 'cover' | 'zip') => (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounter.current[zone]++
+    console.log(`[DropZone:${zone}] dragenter (counter=${dragCounter.current[zone]})`)
+    setDragActive(s => ({ ...s, [zone]: true }))
+  }
+
+  const onDragLeave = (zone: 'cover' | 'zip') => (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounter.current[zone]--
+    console.log(`[DropZone:${zone}] dragleave (counter=${dragCounter.current[zone]})`)
+    if (dragCounter.current[zone] === 0) {
+      setDragActive(s => ({ ...s, [zone]: false }))
+    }
+  }
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const onDrop = (zone: 'cover' | 'zip') => (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounter.current[zone] = 0
+    setDragActive(s => ({ ...s, [zone]: false }))
+    const file = e.dataTransfer.files[0]
+    if (!file) {
+      console.warn(`[DropZone:${zone}] drop fired but no file found`)
+      return
+    }
+    console.log(`[DropZone:${zone}] drop event fired — name=${file.name} type=${file.type} size=${file.size}B`)
+    if (zone === 'cover') uploadCover(file)
+    else uploadZip(file)
+  }
+
+  const onFileInput = (zone: 'cover' | 'zip') => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    console.log(`[DropZone:${zone}] file input selected — name=${file.name} type=${file.type} size=${file.size}B`)
+    if (zone === 'cover') uploadCover(file)
+    else uploadZip(file)
+    e.target.value = ''
+  }
+
+  // ─── Form handlers ─────────────────────────────────────────────────────────
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSaving(true)
 
@@ -90,7 +211,7 @@ export default function AdminDrumkitsPage() {
     const drumkitData = {
       name: form.name,
       description: form.description,
-      price: parseInt(form.price) * 100, // Convert to cents
+      price: parseInt(form.price) * 100,
       producer_name: form.producer_name,
       image_url: form.image_url,
       file_url: form.file_url,
@@ -101,14 +222,9 @@ export default function AdminDrumkitsPage() {
     }
 
     if (editingId) {
-      await supabase
-        .from('drumkits')
-        .update(drumkitData)
-        .eq('id', editingId)
+      await supabase.from('drumkits').update(drumkitData).eq('id', editingId)
     } else {
-      await supabase
-        .from('drumkits')
-        .insert(drumkitData)
+      await supabase.from('drumkits').insert(drumkitData)
     }
 
     await fetchDrumkits()
@@ -128,6 +244,12 @@ export default function AdminDrumkitsPage() {
       sample_count: '',
       is_featured: false,
     })
+    setUploadState({
+      cover: { uploading: false, error: '' },
+      zip: { uploading: false, error: '' },
+    })
+    dragCounter.current = { cover: 0, zip: 0 }
+    setDragActive({ cover: false, zip: false })
     setShowForm(false)
     setEditingId(null)
   }
@@ -144,13 +266,16 @@ export default function AdminDrumkitsPage() {
       sample_count: String(kit.sample_count || 0),
       is_featured: kit.is_featured,
     })
+    setUploadState({
+      cover: { uploading: false, error: '' },
+      zip: { uploading: false, error: '' },
+    })
     setEditingId(kit.id)
     setShowForm(true)
   }
 
   const deleteDrumkit = async (id: string) => {
     if (!confirm('Are you sure you want to delete this drumkit?')) return
-    
     const supabase = createClient()
     await supabase.from('drumkits').delete().eq('id', id)
     await fetchDrumkits()
@@ -158,10 +283,7 @@ export default function AdminDrumkitsPage() {
 
   const toggleActive = async (id: string, currentState: boolean) => {
     const supabase = createClient()
-    await supabase
-      .from('drumkits')
-      .update({ is_active: !currentState })
-      .eq('id', id)
+    await supabase.from('drumkits').update({ is_active: !currentState }).eq('id', id)
     await fetchDrumkits()
   }
 
@@ -276,26 +398,136 @@ export default function AdminDrumkitsPage() {
                   </div>
                 </div>
 
+                {/* Cover Image Drop Zone */}
                 <div>
-                  <label className="block text-sm text-[#666] mb-2">Image URL</label>
+                  <label className="block text-sm text-[#666] mb-2">Cover Image</label>
                   <input
-                    type="url"
-                    value={form.image_url}
-                    onChange={e => setForm({ ...form, image_url: e.target.value })}
-                    className="w-full rounded-xl bg-[#111] border border-[#222] px-4 py-3 text-white focus:border-[#22C55E] focus:outline-none"
-                    placeholder="https://example.com/cover.jpg"
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={onFileInput('cover')}
                   />
+                  <div
+                    onClick={() => !uploadState.cover.uploading && coverInputRef.current?.click()}
+                    onDragEnter={onDragEnter('cover')}
+                    onDragLeave={onDragLeave('cover')}
+                    onDragOver={onDragOver}
+                    onDrop={onDrop('cover')}
+                    className={`relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 transition-colors cursor-pointer select-none ${
+                      uploadState.cover.uploading
+                        ? 'border-[#22C55E]/40 bg-[#22C55E]/5 cursor-wait'
+                        : dragActive.cover
+                        ? 'border-[#22C55E] bg-[#22C55E]/10'
+                        : form.image_url
+                        ? 'border-[#22C55E]/40 bg-[#111]'
+                        : 'border-[#333] bg-[#111] hover:border-[#444]'
+                    }`}
+                  >
+                    {uploadState.cover.uploading ? (
+                      <>
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#22C55E] border-t-transparent" />
+                        <span className="text-sm text-[#666]">Uploading to drumkit-covers…</span>
+                      </>
+                    ) : form.image_url ? (
+                      <div className="flex items-center gap-3 w-full">
+                        <img
+                          src={form.image_url}
+                          alt="cover preview"
+                          className="h-14 w-14 rounded-lg object-cover shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-[#22C55E] text-sm font-medium">
+                            <CheckCircle2 className="h-4 w-4 shrink-0" />
+                            Uploaded
+                          </div>
+                          <p className="text-xs text-[#555] truncate mt-0.5">{form.image_url}</p>
+                        </div>
+                        <span className="text-xs text-[#555] shrink-0">Drop to replace</span>
+                      </div>
+                    ) : (
+                      <>
+                        <ImageIcon className="h-7 w-7 text-[#444]" />
+                        <div className="text-center">
+                          <p className="text-sm text-[#888]">
+                            {dragActive.cover ? 'Release to upload' : 'Drop cover image or click to browse'}
+                          </p>
+                          <p className="text-xs text-[#555] mt-0.5">jpg, png, webp → drumkit-covers bucket</p>
+                        </div>
+                      </>
+                    )}
+                    {uploadState.cover.error && (
+                      <div className="flex items-center gap-1.5 text-red-400 text-xs mt-1">
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        {uploadState.cover.error}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
+                {/* Zip File Drop Zone */}
                 <div>
-                  <label className="block text-sm text-[#666] mb-2">Download File URL</label>
+                  <label className="block text-sm text-[#666] mb-2">Drumkit ZIP File</label>
                   <input
-                    type="url"
-                    value={form.file_url}
-                    onChange={e => setForm({ ...form, file_url: e.target.value })}
-                    className="w-full rounded-xl bg-[#111] border border-[#222] px-4 py-3 text-white focus:border-[#22C55E] focus:outline-none"
-                    placeholder="https://example.com/drumkit.zip"
+                    ref={zipInputRef}
+                    type="file"
+                    accept=".zip,application/zip,application/x-zip-compressed"
+                    className="hidden"
+                    onChange={onFileInput('zip')}
                   />
+                  <div
+                    onClick={() => !uploadState.zip.uploading && zipInputRef.current?.click()}
+                    onDragEnter={onDragEnter('zip')}
+                    onDragLeave={onDragLeave('zip')}
+                    onDragOver={onDragOver}
+                    onDrop={onDrop('zip')}
+                    className={`relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-6 transition-colors cursor-pointer select-none ${
+                      uploadState.zip.uploading
+                        ? 'border-[#22C55E]/40 bg-[#22C55E]/5 cursor-wait'
+                        : dragActive.zip
+                        ? 'border-[#22C55E] bg-[#22C55E]/10'
+                        : form.file_url
+                        ? 'border-[#22C55E]/40 bg-[#111]'
+                        : 'border-[#333] bg-[#111] hover:border-[#444]'
+                    }`}
+                  >
+                    {uploadState.zip.uploading ? (
+                      <>
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#22C55E] border-t-transparent" />
+                        <span className="text-sm text-[#666]">Uploading to drumkit-files…</span>
+                      </>
+                    ) : form.file_url ? (
+                      <div className="flex items-center gap-3 w-full">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-[#1a1a1a] shrink-0">
+                          <FileArchive className="h-7 w-7 text-[#22C55E]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-[#22C55E] text-sm font-medium">
+                            <CheckCircle2 className="h-4 w-4 shrink-0" />
+                            Uploaded
+                          </div>
+                          <p className="text-xs text-[#555] truncate mt-0.5">{form.file_url}</p>
+                        </div>
+                        <span className="text-xs text-[#555] shrink-0">Drop to replace</span>
+                      </div>
+                    ) : (
+                      <>
+                        <FileArchive className="h-7 w-7 text-[#444]" />
+                        <div className="text-center">
+                          <p className="text-sm text-[#888]">
+                            {dragActive.zip ? 'Release to upload' : 'Drop .zip file or click to browse'}
+                          </p>
+                          <p className="text-xs text-[#555] mt-0.5">.zip only → drumkit-files bucket (private)</p>
+                        </div>
+                      </>
+                    )}
+                    {uploadState.zip.error && (
+                      <div className="flex items-center gap-1.5 text-red-400 text-xs mt-1">
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        {uploadState.zip.error}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -330,7 +562,7 @@ export default function AdminDrumkitsPage() {
                   </button>
                   <button
                     type="submit"
-                    disabled={saving}
+                    disabled={saving || uploadState.cover.uploading || uploadState.zip.uploading}
                     className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[#22C55E] py-3 font-medium text-black hover:bg-[#16A34A] transition-colors disabled:opacity-50"
                   >
                     {saving ? (
@@ -402,8 +634,8 @@ export default function AdminDrumkitsPage() {
                       <button
                         onClick={() => toggleActive(kit.id, kit.is_active)}
                         className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                          kit.is_active 
-                            ? 'bg-[#22C55E]/10 text-[#22C55E]' 
+                          kit.is_active
+                            ? 'bg-[#22C55E]/10 text-[#22C55E]'
                             : 'bg-[#666]/10 text-[#666]'
                         }`}
                       >
