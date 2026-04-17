@@ -61,6 +61,17 @@ export default function AdminDrumkitsPage() {
     checkAdminAndFetch()
   }, [])
 
+  // Prevent browser from navigating to dropped files outside the drop zones
+  useEffect(() => {
+    const prevent = (e: DragEvent) => e.preventDefault()
+    document.addEventListener('dragover', prevent)
+    document.addEventListener('drop', prevent)
+    return () => {
+      document.removeEventListener('dragover', prevent)
+      document.removeEventListener('drop', prevent)
+    }
+  }, [])
+
   const checkAdminAndFetch = async () => {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
