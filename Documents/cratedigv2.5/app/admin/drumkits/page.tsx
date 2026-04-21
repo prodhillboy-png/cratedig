@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Plus, Trash2, Edit, Save, X, ArrowLeft, Package, ImageIcon, FileArchive, CheckCircle2, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface Drumkit {
   id: string
@@ -45,6 +46,7 @@ export default function AdminDrumkitsPage() {
     tags: '',
     sample_count: '',
     is_featured: false,
+    stripe_price_id: '',
   })
 
   const [dragActive, setDragActive] = useState({ cover: false, zip: false })
@@ -119,17 +121,14 @@ export default function AdminDrumkitsPage() {
     const safeName = file.name.replace(/\s+/g, '-').toLowerCase()
     const path = `covers/${Date.now()}-${safeName}`
 
-    console.log('[DropZone:cover] uploading to drumkit-covers →', path)
     const { data, error } = await supabase.storage.from('drumkit-covers').upload(path, file)
 
     if (error) {
-      console.error('[DropZone:cover] upload error', error)
       setUploadState(s => ({ ...s, cover: { uploading: false, error: error.message } }))
       return
     }
 
     const { data: { publicUrl } } = supabase.storage.from('drumkit-covers').getPublicUrl(data.path)
-    console.log('[DropZone:cover] upload complete, public URL →', publicUrl)
     setForm(f => ({ ...f, image_url: publicUrl }))
     setUploadState(s => ({ ...s, cover: { uploading: false, error: '' } }))
   }
@@ -148,17 +147,14 @@ export default function AdminDrumkitsPage() {
     const safeName = file.name.replace(/\s+/g, '-').toLowerCase()
     const path = `kits/${Date.now()}-${safeName}`
 
-    console.log('[DropZone:zip] uploading to drumkit-files →', path)
     const { data, error } = await supabase.storage.from('drumkit-files').upload(path, file)
 
     if (error) {
-      console.error('[DropZone:zip] upload error', error)
       setUploadState(s => ({ ...s, zip: { uploading: false, error: error.message } }))
       return
     }
 
     // Store the storage path (not a URL) — generate signed URLs at download time
-    console.log('[DropZone:zip] upload complete, storage path →', data.path)
     setForm(f => ({ ...f, file_url: data.path }))
     setUploadState(s => ({ ...s, zip: { uploading: false, error: '' } }))
   }
@@ -169,7 +165,6 @@ export default function AdminDrumkitsPage() {
     e.preventDefault()
     e.stopPropagation()
     dragCounter.current[zone]++
-    console.log(`[DropZone:${zone}] dragenter (counter=${dragCounter.current[zone]})`)
     setDragActive(s => ({ ...s, [zone]: true }))
   }
 
@@ -177,7 +172,6 @@ export default function AdminDrumkitsPage() {
     e.preventDefault()
     e.stopPropagation()
     dragCounter.current[zone]--
-    console.log(`[DropZone:${zone}] dragleave (counter=${dragCounter.current[zone]})`)
     if (dragCounter.current[zone] === 0) {
       setDragActive(s => ({ ...s, [zone]: false }))
     }
@@ -194,11 +188,7 @@ export default function AdminDrumkitsPage() {
     dragCounter.current[zone] = 0
     setDragActive(s => ({ ...s, [zone]: false }))
     const file = e.dataTransfer.files[0]
-    if (!file) {
-      console.warn(`[DropZone:${zone}] drop fired but no file found`)
-      return
-    }
-    console.log(`[DropZone:${zone}] drop event fired — name=${file.name} type=${file.type} size=${file.size}B`)
+    if (!file) return
     if (zone === 'cover') uploadCover(file)
     else uploadZip(file)
   }
@@ -206,7 +196,6 @@ export default function AdminDrumkitsPage() {
   const onFileInput = (zone: 'cover' | 'zip') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    console.log(`[DropZone:${zone}] file input selected — name=${file.name} type=${file.type} size=${file.size}B`)
     if (zone === 'cover') uploadCover(file)
     else uploadZip(file)
     e.target.value = ''
@@ -217,6 +206,17 @@ export default function AdminDrumkitsPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setSaving(true)
+
+    if (!form.image_url) {
+      toast.error('Please upload a cover image before saving.')
+      setSaving(false)
+      return
+    }
+    if (!form.file_url) {
+      toast.error('Please upload a ZIP file before saving.')
+      setSaving(false)
+      return
+    }
 
     const supabase = createClient()
     const drumkitData = {
@@ -230,19 +230,20 @@ export default function AdminDrumkitsPage() {
       sample_count: parseInt(form.sample_count) || 0,
       is_featured: form.is_featured,
       is_active: true,
+      stripe_price_id: form.stripe_price_id,
     }
 
     if (editingId) {
       const { error } = await supabase.from('drumkits').update(drumkitData).eq('id', editingId)
       if (error) {
-        alert(`Failed to update: ${error.message}`)
+        toast.error(`Failed to update: ${error.message}`)
         setSaving(false)
         return
       }
     } else {
       const { error } = await supabase.from('drumkits').insert(drumkitData)
       if (error) {
-        alert(`Failed to save: ${error.message}`)
+        toast.error(`Failed to save: ${error.message}`)
         setSaving(false)
         return
       }
@@ -264,6 +265,7 @@ export default function AdminDrumkitsPage() {
       tags: '',
       sample_count: '',
       is_featured: false,
+      stripe_price_id: '',
     })
     setUploadState({
       cover: { uploading: false, error: '' },
@@ -286,6 +288,7 @@ export default function AdminDrumkitsPage() {
       tags: kit.tags?.join(', ') || '',
       sample_count: String(kit.sample_count || 0),
       is_featured: kit.is_featured,
+      stripe_price_id: kit.stripe_price_id || '',
     })
     setUploadState({
       cover: { uploading: false, error: '' },
@@ -298,13 +301,31 @@ export default function AdminDrumkitsPage() {
   const deleteDrumkit = async (id: string) => {
     if (!confirm('Are you sure you want to delete this drumkit?')) return
     const supabase = createClient()
-    await supabase.from('drumkits').delete().eq('id', id)
+
+    const kit = drumkits.find(k => k.id === id)
+
+    const { error } = await supabase.from('drumkits').delete().eq('id', id)
+    if (error) {
+      toast.error(`Failed to delete: ${error.message}`)
+      return
+    }
+
+    if (kit?.image_url) {
+      const coverPath = kit.image_url.split('/drumkit-covers/')[1]
+      if (coverPath) await supabase.storage.from('drumkit-covers').remove([coverPath])
+    }
+
+    if (kit?.file_url) {
+      await supabase.storage.from('drumkit-files').remove([kit.file_url])
+    }
+
     await fetchDrumkits()
   }
 
   const toggleActive = async (id: string, currentState: boolean) => {
     const supabase = createClient()
-    await supabase.from('drumkits').update({ is_active: !currentState }).eq('id', id)
+    const { error } = await supabase.from('drumkits').update({ is_active: !currentState }).eq('id', id)
+    if (error) toast.error(`Failed to update status: ${error.message}`)
     await fetchDrumkits()
   }
 
@@ -559,6 +580,17 @@ export default function AdminDrumkitsPage() {
                     onChange={e => setForm({ ...form, tags: e.target.value })}
                     className="w-full rounded-xl bg-[#111] border border-[#222] px-4 py-3 text-white focus:border-[#22C55E] focus:outline-none"
                     placeholder="drums, hip-hop, lo-fi, vintage"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm text-[#666] mb-2">Stripe Price ID</label>
+                  <input
+                    type="text"
+                    value={form.stripe_price_id}
+                    onChange={e => setForm({ ...form, stripe_price_id: e.target.value })}
+                    className="w-full rounded-xl bg-[#111] border border-[#222] px-4 py-3 text-white focus:border-[#22C55E] focus:outline-none"
+                    placeholder="price_xxx"
                   />
                 </div>
 
