@@ -11,11 +11,17 @@ function SuccessContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
 
   useEffect(() => {
-    if (!sessionId) { setStatus('error'); return }
-    fetch(`/api/checkout/verify?session_id=${sessionId}`)
-      .then(r => r.json())
-      .then(d => setStatus(d.success ? 'success' : 'error'))
-      .catch(() => setStatus('error'))
+    const verify = async () => {
+      if (!sessionId) { setStatus('error'); return }
+      try {
+        const r = await fetch(`/api/checkout/verify?session_id=${sessionId}`)
+        const d = await r.json()
+        setStatus(d.success ? 'success' : 'error')
+      } catch {
+        setStatus('error')
+      }
+    }
+    verify()
   }, [sessionId])
 
   if (status === 'loading') {

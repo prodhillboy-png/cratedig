@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { Play, Pause, SkipForward, Copy, Check, ExternalLink, Music, Disc3, ChevronDown, Gauge, KeyRound, Upload, FileAudio, X, Sun, Moon, User, LogOut } from 'lucide-react'
+import { Play, SkipForward, Copy, Check, ExternalLink, Music, Disc3, ChevronDown, Gauge, Upload, FileAudio, X, Sun, Moon, User, LogOut } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -497,7 +497,7 @@ function estimateBPM(data: Float32Array, sr: number): number {
       last = m
     }
   }
-  let raw = (beats / (data.length / sr)) * 60
+  const raw = (beats / (data.length / sr)) * 60
   if (raw < 60) return Math.round(raw * 2)
   if (raw > 170) return Math.round(raw / 2)
   return Math.round(raw)
