@@ -473,20 +473,6 @@ function decodeHtml(h: string): string {
   return el.value
 }
 
-function countPool(): number {
-  const seen: Record<string, boolean> = {}
-  let n = 0
-  Object.keys(VIDEO_POOL).forEach(g => {
-    VIDEO_POOL[g].forEach(v => {
-      if (!seen[v.id]) {
-        seen[v.id] = true
-        n++
-      }
-    })
-  })
-  return n
-}
-
 // BPM/Key estimation functions (Web Audio API)
 function estimateBPM(data: Float32Array, sr: number): number {
   const step = Math.floor(sr * 0.01)
@@ -584,9 +570,15 @@ export function SampleDigger() {
   const [apiKey, setApiKey] = useState('')
   const [pbBuilding, setPbBuilding] = useState(false)
   const [pbLog, setPbLog] = useState<string[]>([])
-  const [pbOutput, setPbOutput] = useState('')
+  const [livePool, setLivePool] = useState<VideoPool | null>(null)
 
-  const poolCount = countPool()
+  const poolCount = (() => {
+    const p = livePool ?? VIDEO_POOL
+    const seen: Record<string, boolean> = {}
+    let n = 0
+    Object.keys(p).forEach(g => p[g].forEach(v => { if (!seen[v.id]) { seen[v.id] = true; n++ } }))
+    return n
+  })()
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', !isDark)
@@ -595,7 +587,7 @@ export function SampleDigger() {
   // Auth state
   useEffect(() => {
     const supabase = createClient()
-    
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user)
       setLoadingUser(false)
@@ -606,6 +598,20 @@ export function SampleDigger() {
     })
 
     return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('video_pool')
+      .select('pool')
+      .eq('id', 1)
+      .single()
+      .then(({ data }) => {
+        if (data?.pool && Object.keys(data.pool).length > 0) {
+          setLivePool(data.pool as VideoPool)
+        }
+      })
   }, [])
 
   const handleSignOut = async () => {
@@ -640,24 +646,30 @@ export function SampleDigger() {
     }, 110)
   }, [])
 
+  const getPool = useCallback((): VideoPool => {
+    return livePool ?? VIDEO_POOL
+  }, [livePool])
+
   const digCrate = useCallback(() => {
     setIsDigging(true)
     setDetectedBpm(null)
     setDetectedKey(null)
     setDetectedMode(null)
-    
+
     setTimeout(() => {
       let pool: VideoTrack[] = []
       let genreKey = selectedGenre
-      
+
       if (selectedGenre === 'all') {
         // Flatten all genres
-        Object.keys(VIDEO_POOL).forEach(g => {
-          VIDEO_POOL[g].forEach(v => pool.push(v))
+        const activePool = getPool()
+        Object.keys(activePool).forEach(g => {
+          activePool[g].forEach(v => pool.push(v))
         })
-        genreKey = Object.keys(VIDEO_POOL)[Math.floor(Math.random() * Object.keys(VIDEO_POOL).length)]
+        genreKey = Object.keys(activePool)[Math.floor(Math.random() * Object.keys(activePool).length)]
       } else {
-        pool = VIDEO_POOL[selectedGenre] || []
+        const activePool = getPool()
+        pool = activePool[selectedGenre] || []
       }
       
       // Era filter
@@ -686,7 +698,7 @@ export function SampleDigger() {
       
       simulateDetection(selectedGenre === 'all' ? genreKey : selectedGenre)
     }, 350)
-  }, [selectedGenre, selectedEra, shownThisSession, simulateDetection])
+  }, [selectedGenre, selectedEra, shownThisSession, simulateDetection, getPool])
 
   const copyLink = () => {
     if (currentTrack) {
@@ -727,7 +739,6 @@ export function SampleDigger() {
     
     setPbBuilding(true)
     setPbLog([])
-    setPbOutput('')
     
     const SEARCH_TERMS: Record<string, string[]> = {
       soul_jazz: ['rare soul jazz vinyl', '60s soul jazz', 'vintage jazz funk', 'soul jazz sample'],
@@ -750,7 +761,8 @@ export function SampleDigger() {
     let totalCalls = 0
 
     // Seed with existing pool
-    genres.forEach(g => { result[g] = (VIDEO_POOL[g] || []).slice() })
+    const activePool = livePool ?? VIDEO_POOL
+    genres.forEach(g => { result[g] = (activePool[g] || []).slice() })
     const existingTotal = genres.reduce((n, g) => n + result[g].length, 0)
     setPbLog(prev => [...prev, `Current pool: ${existingTotal} tracks. Searching for new additions...`])
 
@@ -758,7 +770,7 @@ export function SampleDigger() {
       const terms = SEARCH_TERMS[genre].sort(() => Math.random() - 0.5).slice(0, 3)
       let collected: Array<{ id: string; title: string; score: number; year: number | null; dur?: number; views?: number }> = []
       const seenIds: Record<string, boolean> = {}
-      ;(VIDEO_POOL[genre] || []).forEach(v => { seenIds[v.id] = true })
+      ;(activePool[genre] || []).forEach(v => { seenIds[v.id] = true })
 
       for (const term of terms) {
         try {
@@ -834,16 +846,22 @@ export function SampleDigger() {
 
     const newTotal = genres.reduce((n, g) => n + result[g].length, 0)
     const added = newTotal - existingTotal
-    setPbLog(prev => [...prev, `Done! +${added} new tracks → ${newTotal} total | ${totalCalls} calls. Copy JSON below.`])
-    setPbOutput(JSON.stringify(result, null, 2))
-    setPbBuilding(false)
-  }
+    setPbLog(prev => [...prev, `Done! +${added} new tracks → ${newTotal} total | ${totalCalls} calls.`])
 
-  const copyPoolOutput = () => {
-    if (pbOutput) {
-      navigator.clipboard.writeText(pbOutput)
-      alert('JSON copied — paste into VIDEO_POOL in your code')
+    // Save to Supabase
+    const supabase = createClient()
+    const { error: saveError } = await supabase
+      .from('video_pool')
+      .upsert({ id: 1, pool: result, updated_at: new Date().toISOString() })
+
+    if (saveError) {
+      setPbLog(prev => [...prev, `⚠ Supabase save failed: ${saveError.message}`])
+    } else {
+      setLivePool(result)
+      setPbLog(prev => [...prev, `✓ Pool saved to Supabase — live immediately, no code edit needed.`])
     }
+
+    setPbBuilding(false)
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1265,26 +1283,18 @@ export function SampleDigger() {
                 }`}
               />
               <div className="flex gap-3 mb-4">
-                <button 
+                <button
                   onClick={runPoolBuild}
                   disabled={pbBuilding}
                   className="rounded-xl bg-[#22C55E] px-6 py-3 text-sm font-bold font-mono text-black transition-all hover:bg-[#16A34A] disabled:opacity-50"
                 >
                   {pbBuilding ? 'Building...' : 'Build Pool'}
                 </button>
-                {pbOutput && (
-                  <button 
-                    onClick={copyPoolOutput}
-                    className="rounded-xl bg-[#22C55E]/20 border border-[#22C55E] px-6 py-3 text-sm font-bold font-mono text-[#22C55E] transition-all hover:bg-[#22C55E]/30"
-                  >
-                    Copy JSON
-                  </button>
-                )}
-                <button 
+                <button
                   onClick={() => setShowPoolBuilder(false)}
                   className={`rounded-xl px-6 py-3 text-sm font-medium transition-all ${
-                    isDark 
-                      ? 'bg-[#111] border border-[#222] text-white hover:border-[#22C55E] hover:text-[#22C55E]' 
+                    isDark
+                      ? 'bg-[#111] border border-[#222] text-white hover:border-[#22C55E] hover:text-[#22C55E]'
                       : 'bg-[#f5f5f5] border border-[#e5e5e5] text-black hover:border-[#22C55E] hover:text-[#22C55E]'
                   }`}
                 >
@@ -1305,14 +1315,6 @@ export function SampleDigger() {
                 </div>
               )}
               
-              {/* JSON Output */}
-              {pbOutput && (
-                <pre className={`rounded-xl p-3 max-h-64 overflow-auto font-mono text-xs ${
-                  isDark ? 'bg-[#111] border border-[#222] text-[#888]' : 'bg-[#f5f5f5] border border-[#e5e5e5] text-[#666]'
-                }`}>
-                  {pbOutput}
-                </pre>
-              )}
             </div>
           )}
         </div>
