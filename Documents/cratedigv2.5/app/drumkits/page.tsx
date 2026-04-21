@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Disc3, ShoppingCart, Play, Star, ArrowLeft, Search, Filter, ChevronDown, Sun, Moon, Package } from 'lucide-react'
+import { Disc3, ShoppingCart, Play, ArrowLeft, Search, Filter, ChevronDown, Sun, Moon, Package } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import type { User } from '@supabase/supabase-js'
+import { toast } from 'sonner'
 
 interface Drumkit {
   id: string
@@ -27,9 +29,13 @@ export default function DrumkitsPage() {
   const [sortBy, setSortBy] = useState('Popular')
   const [searchQuery, setSearchQuery] = useState('')
   const [showSortDropdown, setShowSortDropdown] = useState(false)
-  const [cart, setCart] = useState<string[]>([])
   const [drumkits, setDrumkits] = useState<Drumkit[]>([])
   const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
+  const [purchases, setPurchases] = useState<string[]>([])
+  const [purchasedKits, setPurchasedKits] = useState<{ id: string; name: string; image_url: string }[]>([])
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false)
+  const [checkingOut, setCheckingOut] = useState<string | null>(null)
 
   useEffect(() => {
     fetchDrumkits()
@@ -62,16 +68,81 @@ export default function DrumkitsPage() {
     setLoading(false)
   }
 
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+      if (user) fetchPurchases(user.id)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null)
+      if (session?.user) fetchPurchases(session.user.id)
+      else { setPurchases([]); setPurchasedKits([]) }
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const fetchPurchases = async (userId: string) => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('purchases')
+      .select('drumkit_id, drumkits(id, name, image_url)')
+      .eq('user_id', userId)
+    if (data) {
+      setPurchases(data.map(p => p.drumkit_id))
+      setPurchasedKits(data.map(p => (p.drumkits as unknown as { id: string; name: string; image_url: string })))
+    }
+  }
+
+  useEffect(() => {
+    if (!showAccountDropdown) return
+    const close = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('[data-account-dropdown]')) setShowAccountDropdown(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [showAccountDropdown])
+
   const filteredKits = drumkits.filter(kit => {
     const matchesCategory = selectedCategory === 'All' || kit.tags?.some(tag => tag.toLowerCase().includes(selectedCategory.toLowerCase()))
     const matchesSearch = kit.name.toLowerCase().includes(searchQuery.toLowerCase()) || kit.producer_name.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesCategory && matchesSearch
   })
 
-  const addToCart = (id: string) => {
-    if (!cart.includes(id)) {
-      setCart([...cart, id])
+  const handleBuy = async (drumkitId: string) => {
+    if (!user) {
+      window.location.href = '/auth/login'
+      return
     }
+    if (purchases.includes(drumkitId)) return
+    setCheckingOut(drumkitId)
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ drumkit_id: drumkitId }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        toast.error(data.error ?? 'Checkout failed')
+        setCheckingOut(null)
+      }
+    } catch {
+      toast.error('Network error — please try again')
+      setCheckingOut(null)
+    }
+  }
+
+  const handleDownload = (drumkitId: string) => {
+    window.location.href = `/api/download?drumkit_id=${drumkitId}`
+  }
+
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    setShowAccountDropdown(false)
   }
 
   return (
@@ -108,19 +179,67 @@ export default function DrumkitsPage() {
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
-          <button className={`relative flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ${
-            isDark 
-              ? 'bg-[#111] border border-[#222] hover:bg-[#1a1a1a] hover:border-[#333]'
-              : 'bg-white border border-[#e5e5e5] hover:bg-[#f5f5f5]'
-          }`}>
-            <ShoppingCart className="h-4 w-4" />
-            Cart
-            {cart.length > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E] text-xs font-bold text-black">
-                {cart.length}
-              </span>
-            )}
-          </button>
+          {user ? (
+            <div className="relative" data-account-dropdown>
+              <button
+                onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#22C55E] text-black text-sm font-bold transition-all duration-300"
+              >
+                {user.email?.[0].toUpperCase()}
+              </button>
+              {showAccountDropdown && (
+                <div className={`absolute right-0 top-full mt-2 w-72 rounded-2xl p-3 shadow-2xl z-50 ${
+                  isDark ? 'bg-[#111] border border-[#222]' : 'bg-white border border-[#e5e5e5]'
+                }`}>
+                  <p className={`text-xs px-2 pb-2 mb-2 border-b truncate ${isDark ? 'text-[#666] border-[#222]' : 'text-[#999] border-[#e5e5e5]'}`}>
+                    {user.email}
+                  </p>
+                  <p className={`text-xs font-semibold px-2 mb-2 uppercase tracking-wider ${isDark ? 'text-[#666]' : 'text-[#999]'}`}>
+                    Downloads
+                  </p>
+                  {purchasedKits.length === 0 ? (
+                    <p className={`text-sm px-2 py-3 ${isDark ? 'text-[#555]' : 'text-[#aaa]'}`}>No purchases yet.</p>
+                  ) : (
+                    <div className="space-y-1 mb-2">
+                      {purchasedKits.map(kit => (
+                        <div key={kit.id} className={`flex items-center gap-3 rounded-xl px-2 py-2 ${isDark ? 'hover:bg-[#1a1a1a]' : 'hover:bg-[#f5f5f5]'}`}>
+                          {kit.image_url ? (
+                            <img src={kit.image_url} alt={kit.name} className="h-9 w-9 rounded-lg object-cover shrink-0" />
+                          ) : (
+                            <div className={`h-9 w-9 rounded-lg shrink-0 flex items-center justify-center ${isDark ? 'bg-[#222]' : 'bg-[#eee]'}`}>
+                              <Package className="h-4 w-4 text-[#666]" />
+                            </div>
+                          )}
+                          <span className={`text-sm flex-1 truncate ${isDark ? 'text-white' : 'text-black'}`}>{kit.name}</span>
+                          <button
+                            onClick={() => handleDownload(kit.id)}
+                            className="text-xs text-[#22C55E] hover:underline shrink-0"
+                          >
+                            Download
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button
+                    onClick={handleSignOut}
+                    className={`w-full text-left text-sm px-2 py-2 rounded-xl transition-colors ${isDark ? 'text-[#666] hover:text-white hover:bg-[#1a1a1a]' : 'text-[#999] hover:text-black hover:bg-[#f5f5f5]'}`}
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <a
+              href="/auth/login"
+              className={`rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-300 ${
+                isDark ? 'bg-[#111] border border-[#222] hover:bg-[#1a1a1a]' : 'bg-white border border-[#e5e5e5] hover:bg-[#f5f5f5]'
+              }`}
+            >
+              Sign In
+            </a>
+          )}
         </div>
       </header>
 
@@ -302,22 +421,24 @@ export default function DrumkitsPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-bold text-[#22C55E]">${(kit.price / 100).toFixed(2)}</span>
                     <button
-                      onClick={() => addToCart(kit.id)}
+                      onClick={() => purchases.includes(kit.id) ? handleDownload(kit.id) : handleBuy(kit.id)}
+                      disabled={checkingOut === kit.id}
                       className={`flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-medium transition-all duration-300 ${
-                        cart.includes(kit.id)
-                          ? isDark 
-                            ? 'bg-[#1a1a1a] text-[#666] cursor-default'
-                            : 'bg-[#f5f5f5] text-[#999] cursor-default'
+                        purchases.includes(kit.id)
+                          ? 'bg-[#22C55E] text-black hover:bg-[#16A34A]'
+                          : checkingOut === kit.id
+                          ? isDark ? 'bg-[#1a1a1a] text-[#666] cursor-wait' : 'bg-[#f5f5f5] text-[#999] cursor-wait'
                           : 'bg-[#22C55E] text-black hover:bg-[#16A34A] active:scale-95'
                       }`}
-                      disabled={cart.includes(kit.id)}
                     >
-                      {cart.includes(kit.id) ? (
-                        'Added'
+                      {purchases.includes(kit.id) ? (
+                        'Download'
+                      ) : checkingOut === kit.id ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#666] border-t-transparent" />
                       ) : (
                         <>
                           <ShoppingCart className="h-4 w-4" />
-                          Add to Cart
+                          Buy Now
                         </>
                       )}
                     </button>
