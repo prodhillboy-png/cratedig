@@ -233,9 +233,19 @@ export default function AdminDrumkitsPage() {
     }
 
     if (editingId) {
-      await supabase.from('drumkits').update(drumkitData).eq('id', editingId)
+      const { error } = await supabase.from('drumkits').update(drumkitData).eq('id', editingId)
+      if (error) {
+        alert(`Failed to update: ${error.message}`)
+        setSaving(false)
+        return
+      }
     } else {
-      await supabase.from('drumkits').insert(drumkitData)
+      const { error } = await supabase.from('drumkits').insert(drumkitData)
+      if (error) {
+        alert(`Failed to save: ${error.message}`)
+        setSaving(false)
+        return
+      }
     }
 
     await fetchDrumkits()
