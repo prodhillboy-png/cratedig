@@ -143,11 +143,27 @@ export default function AdminDrumkitsPage() {
       return
     }
     setUploadState(s => ({ ...s, zip: { uploading: true, error: '' } }))
-    const supabase = createClient()
-    const safeName = file.name.replace(/\s+/g, '-').toLowerCase()
-    const path = `kits/${Date.now()}-${safeName}`
 
-    const { data, error } = await supabase.storage.from('drumkit-files').upload(path, file)
+    // Get a signed upload URL from the server (admin client bypasses RLS)
+    const urlRes = await fetch('/api/drumkit-upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: file.name }),
+    })
+
+    if (!urlRes.ok) {
+      const { error } = await urlRes.json()
+      setUploadState(s => ({ ...s, zip: { uploading: false, error: error ?? 'Failed to get upload URL' } }))
+      return
+    }
+
+    const { path, token } = await urlRes.json()
+
+    // Upload directly from browser to Supabase storage using the signed URL
+    const supabase = createClient()
+    const { data, error } = await supabase.storage
+      .from('drumkit-files')
+      .uploadToSignedUrl(path, token, file, { contentType: 'application/zip' })
 
     if (error) {
       setUploadState(s => ({ ...s, zip: { uploading: false, error: error.message } }))
